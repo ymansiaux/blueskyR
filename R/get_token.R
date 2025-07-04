@@ -7,6 +7,7 @@
 #' @return List with access_jwt and did
 #' @export
 #' @importFrom httr2 request req_body_json req_perform resp_check_status resp_body_json is_online
+#' @details You can find more information about the Bluesky API here: \url{https://docs.bsky.app/docs/api/com-atproto-server-create-session}
 #' @examples
 #' \dontrun{
 #' get_bearer_token()

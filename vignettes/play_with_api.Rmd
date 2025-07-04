@@ -23,6 +23,21 @@ library(purrr)
 ```
 
 ```{r}
+handle <- Sys.getenv("bluesky_id")
+password <- Sys.getenv("bluesky_pwd")
+
+token <- get_bearer_token(handle, password)
+token <- token$access_jwt
+```
+
+```{r}
+posts <- search_posts(keyword = "covid19", access_jwt = token, max_posts = 100)
+
+names(posts[[1]])
+```
+
+
+```{r}
 # Bluesky credentials
 handle <- Sys.getenv("bluesky_id")
 password <- Sys.getenv("bluesky_pwd")

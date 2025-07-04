@@ -23,6 +23,9 @@ List with access_jwt and did
 \description{
 Get bearer token
 }
+\details{
+You can find more information about the Bluesky API here: \url{https://docs.bsky.app/docs/api/com-atproto-server-create-session}
+}
 \examples{
 \dontrun{
 get_bearer_token()
