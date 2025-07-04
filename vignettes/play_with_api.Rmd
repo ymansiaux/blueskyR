@@ -1,0 +1,203 @@
+---
+title: "play_with_api"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{play_with_api}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(blueskyR)
+library(httr2)
+library(jsonlite)
+library(dplyr)
+library(purrr)
+```
+
+```{r}
+# Bluesky credentials
+handle <- Sys.getenv("bluesky_id")
+password <- Sys.getenv("bluesky_pwd")
+
+# Login request
+# https://docs.bsky.app/docs/api/com-atproto-server-create-session
+login_url <- "https://bsky.social/xrpc/com.atproto.server.createSession"
+
+resp <- request(login_url) |>
+  req_body_json(list(identifier = handle, password = password)) |>
+  req_perform()
+
+# Check status
+resp_check_status(resp)
+
+# Get tokens
+session <- resp_body_json(resp)
+access_jwt <- session$accessJwt
+did <- session$did
+
+# Define search topic
+keyword <- "covid19"
+
+# Search endpoint
+# https://docs.bsky.app/docs/api/app-bsky-feed-search-posts
+search_url <- "https://bsky.social/xrpc/app.bsky.feed.searchPosts"
+
+# Request
+resp_search <- request(search_url) |>
+  req_url_query(q = keyword, limit = 100) |>
+  req_headers(Authorization = paste("Bearer", access_jwt)) |>
+  req_perform()
+
+# Get results
+results <- resp_body_json(resp_search)$posts %>%
+  as_tibble()
+
+results <- resp_body_json(resp_search)
+names(results)
+
+results$cursor
+
+# content of a post: https://atproto.blue/en/latest/atproto/atproto_client.models.app.bsky.feed.defs.html#atproto_client.models.app.bsky.feed.defs.PostView
+posts <- results$posts
+
+names(posts[[1]])
+
+posts[[1]]$uri
+posts[[1]]$cid
+posts[[1]]$author$createdAt
+posts[[1]]$embed
+posts[[1]]$labels
+posts[[1]]$indexedAt
+
+author_did <- posts[[1]]$author$did
+post_uri <- posts[[1]]$uri
+post_rkey <- sub(".*/", "", post_uri)
+post_url <- paste0("https://bsky.app/profile/", author_did, "/post/", post_rkey)
+print(post_url)
+
+
+post_content <- posts[[1]]$record
+names(post_content)
+post_content$createdAt
+# l'impression que ca doublonne avec posts$embed
+post_content$embed
+
+# contient les hashtags, mais ils sont présents dans le texte
+post_content$facets
+
+post_content$text
+
+authors <- map(posts, "author")
+
+
+
+
+
+records <- map(results, "record")
+names(records[[1]])
+
+# OSEF
+records[[1]][["$type"]]
+
+# A garder
+records[[1]][["createdAt"]]
+
+# Liens
+records[[1]][["embed"]]
+records[[1]][["embed"]][["external"]][["uri"]]
+records[[1]][["embed"]][["external"]][["title"]]
+records[[1]][["embed"]][["external"]][["description"]]
+
+# Function to get all posts for a keyword
+get_all_posts <- function(keyword, access_jwt, max_posts = NULL) {
+  if (!is_online()) {
+    stop("No internet connection")
+  }
+
+  search_url <- "https://bsky.social/xrpc/app.bsky.feed.searchPosts"
+  all_posts <- list()
+  cursor <- NULL
+  post_count <- 0
+
+  repeat {
+    # Build request with cursor if available
+    req <- request(search_url) |>
+      req_url_query(q = keyword, limit = 100)
+
+    if (!is.null(cursor)) {
+      req <- req |> req_url_query(cursor = cursor)
+    }
+
+    req <- req |>
+      req_headers(Authorization = paste("Bearer", access_jwt)) |>
+      req_perform()
+
+    # Get results
+    results <- resp_body_json(req)
+    posts <- results$posts
+
+    # Add posts to our collection
+    all_posts <- c(all_posts, posts)
+    post_count <- post_count + length(posts)
+
+    # Check if we have more posts
+    cursor <- results$cursor
+
+    # Print progress
+    cat("Retrieved", post_count, "posts so far...\n")
+
+    # Break conditions
+    if (is.null(cursor) || length(posts) == 0) {
+      cat("No more posts available.\n")
+      break
+    }
+
+    if (!is.null(max_posts) && post_count >= max_posts) {
+      cat("Reached maximum number of posts.\n")
+      break
+    }
+
+    # Small delay to be respectful to the API
+    Sys.sleep(0.5)
+  }
+
+  cat("Total posts retrieved:", length(all_posts), "\n")
+  return(all_posts)
+}
+
+# Use the function to get all posts
+all_posts <- get_all_posts(keyword, access_jwt)
+all_posts <- get_all_posts(keyword, access_jwt, max_posts = 500)
+
+length(all_posts)
+all_posts[[1]]
+
+
+# Convert to a more manageable format
+posts_df <- map_dfr(all_posts, function(post) {
+  tibble(
+    author_handle = post$author$handle,
+    author_did = post$author$did,
+    text = post$record$text,
+    uri = post$uri,
+    cid = post$cid,
+    created_at = post$record$createdAt,
+    indexed_at = post$indexedAt,
+    # Extract post rkey for URL construction
+    post_rkey = sub(".*/", "", post$uri),
+    # Construct web URL
+    web_url = paste0("https://bsky.app/profile/", post$author$did, "/post/", sub(".*/", "", post$uri))
+  )
+}, .id = "post_id")
+
+# View the results
+print(posts_df)
+```
