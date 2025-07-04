@@ -1,120 +1,120 @@
 test_that("search_posts works with valid parameters", {
-    # Mock successful search response
-    mock_posts <- list(
-        list(
-            uri = "at://did:plc:test123/app.bsky.feed.post/abc123",
-            cid = "cid123",
-            author = list(
-                handle = "test.bsky.app",
-                did = "did:plc:test123",
-                createdAt = "2023-01-01T00:00:00.000Z"
-            ),
-            record = list(
-                text = "Test post about covid19",
-                createdAt = "2023-01-01T00:00:00.000Z"
-            ),
-            indexedAt = "2023-01-01T00:00:00.000Z"
-        )
+  # Mock successful search response
+  mock_posts <- list(
+    list(
+      uri = "at://did:plc:test123/app.bsky.feed.post/abc123",
+      cid = "cid123",
+      author = list(
+        handle = "test.bsky.app",
+        did = "did:plc:test123",
+        createdAt = "2023-01-01T00:00:00.000Z"
+      ),
+      record = list(
+        text = "Test post about covid19",
+        createdAt = "2023-01-01T00:00:00.000Z"
+      ),
+      indexedAt = "2023-01-01T00:00:00.000Z"
     )
+  )
 
-    mock_response <- list(
-        posts = mock_posts,
-        cursor = NULL
-    )
+  mock_response <- list(
+    posts = mock_posts,
+    cursor = NULL
+  )
 
-    with_mocked_bindings(
-        code = {
-            result <- search_posts("covid19", "mock_token", max_posts = 100)
+  with_mocked_bindings(
+    code = {
+      result <- search_posts("covid19", "mock_token", max_posts = 100)
 
-            expect_type(result, "list")
-            expect_length(result, 1)
-            expect_equal(
-                result[[1]]$uri,
-                "at://did:plc:test123/app.bsky.feed.post/abc123"
-            )
-            expect_equal(result[[1]]$record$text, "Test post about covid19")
-        },
-        is_online = online,
-        request = mock_request,
-        req_url_query = mock_req_url_query,
-        req_headers = mock_req_headers,
-        req_perform = function(req) mock_req_perform(req, mock_response),
-        resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
-    )
+      expect_type(result, "list")
+      expect_length(result, 1)
+      expect_equal(
+        result[[1]]$uri,
+        "at://did:plc:test123/app.bsky.feed.post/abc123"
+      )
+      expect_equal(result[[1]]$record$text, "Test post about covid19")
+    },
+    is_online = online,
+    request = mock_request,
+    req_url_query = mock_req_url_query,
+    req_headers = mock_req_headers,
+    req_perform = function(req) mock_req_perform(req, mock_response),
+    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
+  )
 })
 
 test_that("search_posts works when retrieving many posts", {
-    # Mock successful search response
-    mock_posts <- create_mock_posts(n = 200)
+  # Mock successful search response
+  mock_posts <- create_mock_posts(n = 200)
 
-    mock_response <- list(
-        posts = mock_posts,
-        cursor = NULL
-    )
+  mock_response <- list(
+    posts = mock_posts,
+    cursor = NULL
+  )
 
-    with_mocked_bindings(
-        code = {
-            result <- search_posts("covid19", "mock_token")
+  with_mocked_bindings(
+    code = {
+      result <- search_posts("covid19", "mock_token")
 
-            expect_type(result, "list")
-            expect_length(result, 200)
-        },
-        is_online = online,
-        request = mock_request,
-        req_url_query = mock_req_url_query,
-        req_headers = mock_req_headers,
-        req_perform = function(req) mock_req_perform(req, mock_response),
-        resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
-    )
+      expect_type(result, "list")
+      expect_length(result, 200)
+    },
+    is_online = online,
+    request = mock_request,
+    req_url_query = mock_req_url_query,
+    req_headers = mock_req_headers,
+    req_perform = function(req) mock_req_perform(req, mock_response),
+    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
+  )
 })
 
 test_that("search_posts fails with no internet connection", {
-    with_mocked_bindings(
-        code = {
-            expect_error(
-                search_posts("covid19", "mock_token"),
-                "No internet connection"
-            )
-        },
-        is_online = offline
-    )
+  with_mocked_bindings(
+    code = {
+      expect_error(
+        search_posts("covid19", "mock_token"),
+        "No internet connection"
+      )
+    },
+    is_online = offline
+  )
 })
 
 test_that("search_posts handles empty results", {
-    mock_response <- list(
-        posts = list(),
-        cursor = NULL
-    )
+  mock_response <- list(
+    posts = list(),
+    cursor = NULL
+  )
 
-    with_mocked_bindings(
-        code = {
-            result <- search_posts("nonexistentkeyword", "mock_token")
+  with_mocked_bindings(
+    code = {
+      result <- search_posts("nonexistentkeyword", "mock_token")
 
-            expect_type(result, "list")
-            expect_length(result, 0)
-        },
-        is_online = online,
-        request = mock_request,
-        req_url_query = mock_req_url_query,
-        req_headers = mock_req_headers,
-        req_perform = function(req) mock_req_perform(req, mock_response),
-        resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
-    )
+      expect_type(result, "list")
+      expect_length(result, 0)
+    },
+    is_online = online,
+    request = mock_request,
+    req_url_query = mock_req_url_query,
+    req_headers = mock_req_headers,
+    req_perform = function(req) mock_req_perform(req, mock_response),
+    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
+  )
 })
 
 test_that("search_posts handles API errors", {
-    with_mocked_bindings(
-        code = {
-            expect_error(
-                search_posts("covid19", "invalid_token"),
-                "HTTP 401 Unauthorized"
-            )
-        },
-        is_online = online,
-        request = mock_request,
-        req_url_query = mock_req_url_query,
-        req_headers = mock_req_headers,
-        req_perform = mock_error_req_perform,
-        resp_body_json = mock_error_resp_body_json
-    )
+  with_mocked_bindings(
+    code = {
+      expect_error(
+        search_posts("covid19", "invalid_token"),
+        "HTTP 401 Unauthorized"
+      )
+    },
+    is_online = online,
+    request = mock_request,
+    req_url_query = mock_req_url_query,
+    req_headers = mock_req_headers,
+    req_perform = mock_error_req_perform,
+    resp_body_json = mock_error_resp_body_json
+  )
 })

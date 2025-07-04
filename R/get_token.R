@@ -14,38 +14,38 @@
 #' }
 #'
 get_bearer_token <- function(
-    handle = Sys.getenv("bluesky_id"),
-    password = Sys.getenv("bluesky_pwd"),
-    login_url = "https://bsky.social/xrpc/com.atproto.server.createSession"
+  handle = Sys.getenv("bluesky_id"),
+  password = Sys.getenv("bluesky_pwd"),
+  login_url = "https://bsky.social/xrpc/com.atproto.server.createSession"
 ) {
-    if (!is_online()) {
-        stop("No internet connection")
-    }
+  if (!is_online()) {
+    stop("No internet connection")
+  }
 
-    if (is.null(handle) || is.null(password)) {
-        stop("Handle and password are required")
-    }
+  if (is.null(handle) || is.null(password)) {
+    stop("Handle and password are required")
+  }
 
-    if (handle == "") {
-        stop("Handle is required")
-    }
+  if (handle == "") {
+    stop("Handle is required")
+  }
 
-    if (password == "") {
-        stop("Password is required")
-    }
+  if (password == "") {
+    stop("Password is required")
+  }
 
-    if (login_url == "") {
-        stop("Login URL is required")
-    }
-    resp <- request(login_url) |>
-        req_body_json(list(identifier = handle, password = password)) |>
-        req_perform()
+  if (login_url == "") {
+    stop("Login URL is required")
+  }
+  resp <- request(login_url) |>
+    req_body_json(list(identifier = handle, password = password)) |>
+    req_perform()
 
-    resp_check_status(resp)
+  resp_check_status(resp)
 
-    session <- resp_body_json(resp)
-    access_jwt <- session$accessJwt
-    did <- session$did
+  session <- resp_body_json(resp)
+  access_jwt <- session$accessJwt
+  did <- session$did
 
-    return(list(access_jwt = access_jwt, did = did))
+  return(list(access_jwt = access_jwt, did = did))
 }
