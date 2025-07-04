@@ -8,6 +8,7 @@
 #' Additionnaly more information about the "post" object is available here: \url{https://atproto.blue/en/latest/atproto/atproto_client.models.app.bsky.feed.defs.html#atproto_client.models.app.bsky.feed.defs.PostView}
 #' @return List of posts
 #' @export
+#' @importFrom httr2 request req_url_query req_headers req_perform resp_body_json is_online
 search_posts <- function(
     keyword,
     access_jwt,
