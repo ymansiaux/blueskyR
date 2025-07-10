@@ -1,7 +1,9 @@
 test_that("get_bearer_token works with valid credentials", {
   mock_response <- list(
+    handle = "test.bsky.app",
     accessJwt = "mock_access_token_123",
-    did = "did:plc:mock123"
+    did = "did:plc:mock123",
+    refreshJwt = "mock_refresh_token_123"
   )
 
   with_mocked_bindings(
@@ -9,9 +11,11 @@ test_that("get_bearer_token works with valid credentials", {
       result <- get_bearer_token("test.bsky.app", "password123")
 
       expect_type(result, "list")
-      expect_named(result, c("access_jwt", "did"))
+      expect_named(result, c("handle", "access_jwt", "did", "refreshJwt"))
+      expect_equal(result$handle, "test.bsky.app")
       expect_equal(result$access_jwt, "mock_access_token_123")
       expect_equal(result$did, "did:plc:mock123")
+      expect_equal(result$refreshJwt, "mock_refresh_token_123")
     },
     is_online = online,
     request = mock_request,

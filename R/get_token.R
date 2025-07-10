@@ -44,8 +44,10 @@ get_bearer_token <- function(
   resp_check_status(resp)
 
   session <- resp_body_json(resp)
-  access_jwt <- session$accessJwt
-  did <- session$did
-
-  return(list(access_jwt = access_jwt, did = did))
+  return(list(
+    handle = session$handle,
+    access_jwt = session$accessJwt,
+    did = session$did,
+    refreshJwt = session$refreshJwt
+  ))
 }
