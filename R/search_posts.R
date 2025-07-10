@@ -36,7 +36,7 @@ search_posts <- function(
   if (!is.null(cursor)) {
     req <- req |> req_url_query(cursor = cursor)
   }
-
+  # Must find a way to check for invalid token
   resp <- req |>
     req_headers(Authorization = paste("Bearer", access_jwt)) |>
     req_retry(
