@@ -24,15 +24,20 @@ test_that("search_posts works with valid parameters", {
 
   with_mocked_bindings(
     code = {
-      result <- search_posts("covid19", "mock_token", max_posts = 100)
+      result <- search_posts(
+        "covid19",
+        "mock_token",
+        number_of_posts_per_request = 100
+      )
 
       expect_type(result, "list")
-      expect_length(result, 1)
+      expect_length(result, 3)
+      post <- result[[1]]
       expect_equal(
-        result[[1]]$uri,
+        post[[1]]$uri,
         "at://did:plc:test123/app.bsky.feed.post/abc123"
       )
-      expect_equal(result[[1]]$record$text, "Test post about covid19")
+      expect_equal(post[[1]]$record$text, "Test post about covid19")
     },
     is_online = online,
     request = mock_request,
@@ -59,7 +64,8 @@ test_that("search_posts works when retrieving many posts", {
       result <- search_posts("covid19", "mock_token")
 
       expect_type(result, "list")
-      expect_length(result, 200)
+      posts <- result[[1]]
+      expect_length(posts, 200)
     },
     is_online = online,
     request = mock_request,
@@ -95,7 +101,7 @@ test_that("search_posts handles empty results", {
       result <- search_posts("nonexistentkeyword", "mock_token")
 
       expect_type(result, "list")
-      expect_length(result, 0)
+      expect_length(result[[1]], 0)
     },
     is_online = online,
     request = mock_request,
