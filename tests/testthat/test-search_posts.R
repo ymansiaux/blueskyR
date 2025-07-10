@@ -39,7 +39,9 @@ test_that("search_posts works with valid parameters", {
     req_url_query = mock_req_url_query,
     req_headers = mock_req_headers,
     req_perform = function(req) mock_req_perform(req, mock_response),
-    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
+    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response),
+    last_response = mock_last_response,
+    resp_status = mock_resp_status
   )
 })
 
@@ -64,7 +66,9 @@ test_that("search_posts works when retrieving many posts", {
     req_url_query = mock_req_url_query,
     req_headers = mock_req_headers,
     req_perform = function(req) mock_req_perform(req, mock_response),
-    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
+    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response),
+    last_response = mock_last_response,
+    resp_status = mock_resp_status
   )
 })
 
@@ -98,7 +102,9 @@ test_that("search_posts handles empty results", {
     req_url_query = mock_req_url_query,
     req_headers = mock_req_headers,
     req_perform = function(req) mock_req_perform(req, mock_response),
-    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
+    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response),
+    last_response = mock_last_response,
+    resp_status = mock_resp_status
   )
 })
 
@@ -115,6 +121,8 @@ test_that("search_posts handles API errors", {
     req_url_query = mock_req_url_query,
     req_headers = mock_req_headers,
     req_perform = mock_error_req_perform,
-    resp_body_json = mock_error_resp_body_json
+    resp_body_json = mock_error_resp_body_json,
+    last_response = mock_last_response,
+    resp_status = mock_resp_status
   )
 })

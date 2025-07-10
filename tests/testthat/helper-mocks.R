@@ -88,6 +88,9 @@ mock_resp_body_json <- function(resp, mock_data = NULL) {
   mock_data
 }
 
+mock_last_response <- function(resp) resp
+mock_resp_status <- function(resp) "200"
+
 # Mock error response
 mock_error_response <- function(
   status_code = 401,
