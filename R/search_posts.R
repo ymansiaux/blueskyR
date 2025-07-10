@@ -33,7 +33,7 @@ search_posts <- function(
 
   repeat {
     req <- request(search_url) |>
-      req_url_query(q = keyword, limit = limit)
+      req_url_query(q = keyword, limit = number_of_posts_per_request)
 
     if (!is.null(cursor)) {
       req <- req |> req_url_query(cursor = cursor)
