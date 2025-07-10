@@ -150,31 +150,6 @@ extract_many_posts_hashtags <- function(posts) {
         map(extract_post_hashtags)
 }
 
-#' Extract hashtags from text
-#'
-#' @param text A text
-#' @return A list of hashtags
-#' @export
-#' @rdname extract_elements
-extract_post_hashtags_from_text <- function(text) {
-    hashtags <- regmatches(text, gregexpr("#\\w+", text))[[1]]
-    gsub("#", "", hashtags) %>%
-        trimws()
-}
-
-#' Extract hashtags from many posts
-#'
-#' @param posts A list of post objects
-#' @return A list of lists of hashtags
-#' @importFrom purrr map
-#' @export
-#' @rdname extract_elements
-extract_many_posts_hashtags_from_text <- function(posts) {
-    texts <- posts %>% extract_many_posts_text()
-    texts %>%
-        map(extract_post_hashtags_from_text)
-}
-
 #' Create post URL
 #'
 #' @param post A post object

@@ -25,25 +25,6 @@ test_that("extract_hashtags works", {
   expect_equal(hashtags, c("Übertragung", "Influenza"))
 })
 
-test_that("extract_hashtags_from_text works", {
-  text <- extract_post_text(example_post)
-  hashtags <- extract_post_hashtags_from_text(text)
-  expect_equal(hashtags, c("Übertragung", "Influenza"))
-
-  complicated_text <- "Wednesday. Take care and stay safe.\n🐼😷\n#WearAMask #Covid19 #CoronaVirus #PandemicPanda #WednesdayMorning"
-  hashtags <- extract_post_hashtags_from_text(complicated_text)
-  expect_equal(
-    hashtags,
-    c(
-      "WearAMask",
-      "Covid19",
-      "CoronaVirus",
-      "PandemicPanda",
-      "WednesdayMorning"
-    )
-  )
-})
-
 test_that("create_post_url works", {
   post_url <- create_post_url(example_post)
   expect_equal(
@@ -107,12 +88,6 @@ test_that("extract_hashtags works", {
   expect_equal(hashtags, NULL)
 })
 
-test_that("extract_hashtags_from_text works", {
-  post_missing_hashtags_from_text <- example_post
-  post_missing_hashtags_from_text$record$text <- NULL
-  hashtags <- extract_post_hashtags_from_text(post_missing_hashtags_from_text)
-  expect_equal(hashtags, character(0))
-})
 
 test_that("create_post_url works", {
   post_missing_url <- example_post
@@ -206,26 +181,6 @@ test_that("extract_many_posts_hashtags works", {
   expect_equal(hashtags[[3]], NULL)
   expect_equal(
     hashtags[[4]],
-    c(
-      "WearAMask",
-      "Covid19",
-      "CoronaVirus",
-      "PandemicPanda",
-      "WednesdayMorning"
-    )
-  )
-})
-
-test_that("extract_many_posts_hashtags_from_text works", {
-  text <- extract_many_posts_hashtags_from_text(example_posts)
-  expect_equal(text[[1]], c("Übertragung", "Influenza"))
-  expect_equal(
-    text[[2]],
-    c("Covidisnotover", "maskup", "cleanair", "Maskenpflicht", "Covid19")
-  )
-  expect_equal(text[[3]], character(0))
-  expect_equal(
-    text[[4]],
     c(
       "WearAMask",
       "Covid19",

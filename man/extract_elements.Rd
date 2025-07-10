@@ -13,8 +13,6 @@
 \alias{extract_many_posts_langs}
 \alias{extract_post_hashtags}
 \alias{extract_many_posts_hashtags}
-\alias{extract_post_hashtags_from_text}
-\alias{extract_many_posts_hashtags_from_text}
 \alias{create_post_url}
 \alias{extract_many_posts_url}
 \alias{create_post_id}
@@ -45,10 +43,6 @@ extract_post_hashtags(post)
 
 extract_many_posts_hashtags(posts)
 
-extract_post_hashtags_from_text(text)
-
-extract_many_posts_hashtags_from_text(posts)
-
 create_post_url(post)
 
 extract_many_posts_url(posts)
@@ -61,8 +55,6 @@ extract_many_posts_id(posts)
 \item{post}{A post object}
 
 \item{posts}{A list of post objects}
-
-\item{text}{A text}
 }
 \value{
 A list of elements
@@ -84,10 +76,6 @@ A list of created ats
 The langs of the post
 
 A list of langs
-
-A list of hashtags
-
-A list of lists of hashtags
 
 A list of hashtags
 
@@ -123,10 +111,6 @@ Extract langs from a post
 Extract langs from many posts
 
 Extract hashtags from a post
-
-Extract hashtags from many posts
-
-Extract hashtags from text
 
 Extract hashtags from many posts
 
