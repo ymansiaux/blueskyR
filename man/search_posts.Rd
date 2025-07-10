@@ -7,12 +7,13 @@
 search_posts(
   keyword,
   access_jwt,
-  max_posts = NULL,
+  cursor = NULL,
   number_of_posts_per_request = 100,
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
   delay_between_retries = 5,
-  errors_for_retries = c(420, 429, 500, 503)
+  errors_for_retries = c(420, 429, 500, 503),
+  verbose = TRUE
 )
 }
 \arguments{
@@ -20,7 +21,7 @@ search_posts(
 
 \item{access_jwt}{Access token}
 
-\item{max_posts}{Maximum number of posts to retrieve}
+\item{cursor}{Optional cursor to resume from a specific point}
 
 \item{number_of_posts_per_request}{Number of posts to retrieve per request}
 
@@ -31,9 +32,11 @@ search_posts(
 \item{delay_between_retries}{Delay between retries}
 
 \item{errors_for_retries}{Errors for retries}
+
+\item{verbose}{Whether to print progress messages}
 }
 \value{
-List of posts
+List with posts and next cursor for resumption
 }
 \description{
 Search posts for a given keyword
