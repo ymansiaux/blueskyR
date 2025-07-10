@@ -15,4 +15,5 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Imports: 
-    httr2
+    httr2,
+    magrittr

@@ -8,7 +8,11 @@ search_posts(
   keyword,
   access_jwt,
   max_posts = NULL,
-  search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts"
+  number_of_posts_per_request = 100,
+  search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
+  max_retries = 20,
+  delay_between_retries = 5,
+  errors_for_retries = c(420, 429, 500, 503)
 )
 }
 \arguments{
@@ -18,7 +22,15 @@ search_posts(
 
 \item{max_posts}{Maximum number of posts to retrieve}
 
+\item{number_of_posts_per_request}{Number of posts to retrieve per request}
+
 \item{search_url}{Search URL}
+
+\item{max_retries}{Maximum number of retries}
+
+\item{delay_between_retries}{Delay between retries}
+
+\item{errors_for_retries}{Errors for retries}
 }
 \value{
 List of posts
