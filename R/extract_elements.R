@@ -1,3 +1,41 @@
+#' Extract elements from a post
+#'
+#' @param post A post object
+#' @return A list of elements
+#' @export
+#' @rdname extract_elements
+extract_post_elements <- function(post) {
+    list(
+        author_infos = extract_post_author_infos(post),
+        text = extract_post_text(post),
+        created_at = extract_post_created_at(post),
+        langs = extract_post_langs(post),
+        hashtags = extract_post_hashtags(post),
+        url = create_post_url(post),
+        id = create_post_id(post)
+    )
+}
+
+#' Extract elements from many posts
+#'
+#' @param posts A list of post objects
+#' @return A list of lists of elements
+#' @export
+#' @importFrom stats setNames
+#' @importFrom purrr map
+#' @rdname extract_elements
+extract_many_posts_elements <- function(posts) {
+    posts %>%
+        map(extract_post_elements) %>%
+        setNames(map(posts, create_post_id))
+}
+
+#' Extract author information from a post
+#'
+#' @param post A post object
+#' @return A list with author handle, did, and created at
+#' @export
+#' @rdname extract_elements
 extract_post_author_infos <- function(post) {
     list(
         author_handle = post$author$handle,
@@ -6,21 +44,93 @@ extract_post_author_infos <- function(post) {
     )
 }
 
+#' Extract author information from many posts
+#'
+#' @param posts A list of post objects
+#' @return A list of lists with author handle, did, and created at
+#' @importFrom purrr map
+#' @export
+#' @rdname extract_elements
+extract_many_posts_author_infos <- function(posts) {
+    posts %>%
+        map(extract_post_author_infos)
+}
+
+#' Extract text from a post
+#'
+#' @param post A post object
+#' @return The text of the post
+#' @export
+#' @rdname extract_elements
 extract_post_text <- function(post) {
     post$record$text
 }
 
+#' Extract text from many posts
+#'
+#' @param posts A list of post objects
+#' @return A list of texts
+#' @importFrom purrr map
+#' @export
+#' @rdname extract_elements
+extract_many_posts_text <- function(posts) {
+    posts %>%
+        map(extract_post_text)
+}
 
+#' Extract created at from a post
+#'
+#' @param post A post object
+#' @return The created at of the post
+#' @export
+#' @rdname extract_elements
 extract_post_created_at <- function(post) {
     post$record$createdAt
 }
 
+#' Extract created at from many posts
+#'
+#' @param posts A list of post objects
+#' @return A list of created ats
+#' @importFrom purrr map
+#' @export
+#' @rdname extract_elements
+extract_many_posts_created_at <- function(posts) {
+    posts %>%
+        map(extract_post_created_at)
+}
+
+#' Extract langs from a post
+#'
+#' @param post A post object
+#' @return The langs of the post
+#' @export
+#' @rdname extract_elements
 extract_post_langs <- function(post) {
     post$record$langs %>%
         unlist() %>%
         paste(collapse = "|")
 }
 
+#' Extract langs from many posts
+#'
+#' @param posts A list of post objects
+#' @return A list of langs
+#' @importFrom purrr map
+#' @export
+#' @rdname extract_elements
+extract_many_posts_langs <- function(posts) {
+    posts %>%
+        map(extract_post_langs)
+}
+
+#' Extract hashtags from a post
+#'
+#' @param post A post object
+#' @return A list of hashtags
+#' @importFrom purrr map
+#' @export
+#' @rdname extract_elements
 extract_post_hashtags <- function(post) {
     post$record$facets %>%
         map("features") %>%
@@ -28,11 +138,49 @@ extract_post_hashtags <- function(post) {
         unlist()
 }
 
-extract_post_hashtags_from_text <- function(text) {
-    hashtags <- regmatches(text, gregexpr("#\\w+", text))[[1]]
-    gsub("#", "", hashtags)
+#' Extract hashtags from many posts
+#'
+#' @param posts A list of post objects
+#' @return A list of lists of hashtags
+#' @importFrom purrr map
+#' @export
+#' @rdname extract_elements
+extract_many_posts_hashtags <- function(posts) {
+    posts %>%
+        map(extract_post_hashtags)
 }
 
+#' Extract hashtags from text
+#'
+#' @param text A text
+#' @return A list of hashtags
+#' @export
+#' @rdname extract_elements
+extract_post_hashtags_from_text <- function(text) {
+    hashtags <- regmatches(text, gregexpr("#\\w+", text))[[1]]
+    gsub("#", "", hashtags) %>%
+        trimws()
+}
+
+#' Extract hashtags from many posts
+#'
+#' @param posts A list of post objects
+#' @return A list of lists of hashtags
+#' @importFrom purrr map
+#' @export
+#' @rdname extract_elements
+extract_many_posts_hashtags_from_text <- function(posts) {
+    texts <- posts %>% extract_many_posts_text()
+    texts %>%
+        map(extract_post_hashtags_from_text)
+}
+
+#' Create post URL
+#'
+#' @param post A post object
+#' @return The URL of the post
+#' @export
+#' @rdname extract_elements
 create_post_url <- function(post) {
     # Check if post has uri
     if (is.null(post$uri)) {
@@ -53,6 +201,25 @@ create_post_url <- function(post) {
     return(web_url)
 }
 
+#' Create post URL from many posts
+#'
+#' @param posts A list of post objects
+#' @return A list of URLs
+#' @importFrom purrr map
+#' @export
+#' @rdname extract_elements
+extract_many_posts_url <- function(posts) {
+    posts %>%
+        map(create_post_url)
+}
+
+#' Create post ID
+#'
+#' @param post A post object
+#' @return The ID of the post
+#' @export
+#' @importFrom digest digest
+#' @rdname extract_elements
 create_post_id <- function(post) {
     # Check if post has uri
     if (is.null(post$uri)) {
@@ -61,5 +228,17 @@ create_post_id <- function(post) {
 
     # Create post URL
     post_url <- create_post_url(post)
-    digest::digest(post_url, algo = "md5")
+    digest(post_url, algo = "md5")
+}
+
+#' Create post ID from many posts
+#'
+#' @param posts A list of post objects
+#' @return A list of IDs
+#' @importFrom purrr map
+#' @export
+#' @rdname extract_elements
+extract_many_posts_id <- function(posts) {
+    posts %>%
+        map(create_post_id)
 }
