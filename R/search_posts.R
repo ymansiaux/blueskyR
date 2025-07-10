@@ -13,7 +13,10 @@ search_posts <- function(
   keyword,
   access_jwt,
   max_posts = NULL,
-  search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts"
+  search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
+  max_retries = 20,
+  delay_between_retries = 5,
+  errors_for_retries = c(420, 429, 500, 503)
 ) {
   if (!is_online()) {
     stop("No internet connection")
@@ -34,7 +37,13 @@ search_posts <- function(
 
     req <- req |>
       req_headers(Authorization = paste("Bearer", access_jwt)) |>
-      req_perform()
+      req_retry(
+        max_tries = max_retries,
+        retry_on_failure = TRUE,
+        backoff = \(resp) delay_between_retries,
+        is_transient = \(resp) resp_status(resp) %in% errors_for_retries
+      )
+    req_perform()
 
     # Get results
     results <- resp_body_json(req)
