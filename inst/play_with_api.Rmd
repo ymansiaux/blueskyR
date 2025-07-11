@@ -33,8 +33,23 @@ token <- infos$access_jwt
 
 ```{r}
 posts <- search_posts_paginated(keyword = "covid19", access_jwt = token, number_of_posts_per_request = 100, max_posts = 200)
+posts <- posts$posts
 names(posts)
 elements <- extract_many_posts_elements(posts$posts)
 
 elements[[1]]
+```
+
+## Comparison with bskyr
+
+```{r}
+library(bskyr)
+set_bluesky_user(Sys.getenv("bluesky_id"))
+set_bluesky_pass(Sys.getenv("bluesky_app_pwd"))
+
+posts_bskyr <- bs_search_posts("covid19", limit = 200)
+
+elements_bskyr <- extract_many_posts_elements_bskyr(posts_bskyr)
+
+elements_bskyr[[1]]
 ```
