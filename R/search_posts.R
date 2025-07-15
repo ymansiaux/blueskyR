@@ -18,6 +18,9 @@ search_posts <- function(
   keyword,
   access_jwt,
   cursor = NULL,
+  sort = "latest",
+  since = NULL,
+  until = NULL,
   number_of_posts_per_request = 100,
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
@@ -28,14 +31,21 @@ search_posts <- function(
   if (!is_online()) {
     stop("No internet connection")
   }
-
+  browser()
   # Make a single request and return results
   req <- request(search_url) |>
-    req_url_query(q = keyword, limit = number_of_posts_per_request)
+    req_url_query(q = keyword, limit = number_of_posts_per_request, sort = sort)
 
   if (!is.null(cursor)) {
     req <- req |> req_url_query(cursor = cursor)
   }
+  if (!is.null(since)) {
+    req <- req |> req_url_query(since = format_date_for_bluesky(since))
+  }
+  if (!is.null(until)) {
+    req <- req |> req_url_query(until = format_date_for_bluesky(until))
+  }
+
   # Must find a way to check for invalid token
   resp <- req |>
     req_headers(Authorization = paste("Bearer", access_jwt)) |>
@@ -47,10 +57,14 @@ search_posts <- function(
     ) %>%
     req_perform()
 
+  browser()
+
   # Get results
   results <- resp_body_json(resp)
   posts <- results$posts
   next_cursor <- results$cursor
+
+  created_at <- extract_many_posts_created_at(posts)
 
   if (verbose) {
     cat("Retrieved", length(posts), "posts.\n")
