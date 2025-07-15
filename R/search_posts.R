@@ -53,7 +53,8 @@ search_posts <- function(
       max_tries = max_retries,
       retry_on_failure = TRUE,
       backoff = \(resp) delay_between_retries,
-      is_transient = \(resp) resp_status(resp) %in% errors_for_retries
+      is_transient = rate_limited_check,
+      after = rerun_after_rate_limit
     ) %>%
     req_perform()
   browser()
@@ -115,7 +116,7 @@ search_posts_paginated <- function(
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
   delay_between_retries = 5,
-  errors_for_retries = c(420, 429, 500, 503),
+  errors_for_retries = c(420, 500, 503),
   verbose = TRUE,
   delay_between_requests = 0.5,
   max_consecutive_failures = 5,
@@ -137,6 +138,23 @@ search_posts_paginated <- function(
     saveRDS(session, "session.rds")
   }
   access_jwt <- session$access_jwt
+
+  # Very simple request to check if the token is valid and the rate limit is not exceeded
+  # We don't want a R error to be thrown if the token is invalid or the rate limit is exceeded
+  # We just want to know that the token is invalid or the rate limit is exceeded
+
+  simple_request <- request(search_url) |>
+    req_url_query(q = keyword, limit = 1, sort = sort) |>
+    req_headers(Authorization = paste("Bearer", access_jwt)) |>
+    req_error(is_error = \(resp) FALSE) |>
+    req_perform()
+
+  if (resp_status(simple_request) == 401) {
+    message("Invalid token. Creating a new session.")
+    session <- create_session()
+    saveRDS(session, "session.rds")
+    access_jwt <- session$access_jwt
+  }
 
   # Create a robust version of search_posts using purrr::possibly
   robust_search_posts <- possibly(
@@ -265,4 +283,19 @@ search_posts_paginated <- function(
     total_requests = request_count,
     failed_requests = failed_requests
   ))
+}
+
+#' @noRd
+rate_limited_check <- function(resp) {
+  if (resp_status(resp) == 429) {
+    identical(resp_header(resp, "RateLimit-Remaining"), "0")
+  } else {
+    FALSE
+  }
+}
+
+#' @noRd
+rerun_after_rate_limit <- function(resp) {
+  time <- as.numeric(resp_header(resp, "RateLimit-Reset"))
+  time - unclass(Sys.time())
 }
