@@ -18,6 +18,9 @@ search_posts <- function(
   keyword,
   access_jwt,
   cursor = NULL,
+  sort = "latest",
+  since = NULL,
+  until = NULL,
   number_of_posts_per_request = 100,
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
@@ -28,14 +31,21 @@ search_posts <- function(
   if (!is_online()) {
     stop("No internet connection")
   }
-
   # Make a single request and return results
   req <- request(search_url) |>
-    req_url_query(q = keyword, limit = number_of_posts_per_request)
+    req_url_query(q = keyword, limit = number_of_posts_per_request, sort = sort)
 
   if (!is.null(cursor)) {
     req <- req |> req_url_query(cursor = cursor)
   }
+  if (!is.null(since)) {
+    req <- req |> req_url_query(since = format_date_for_bluesky(since))
+  }
+  if (!is.null(until)) {
+    req <- req |> req_url_query(until = format_date_for_bluesky(until))
+    message("Will retrieve posts until ", until)
+  }
+
   # Must find a way to check for invalid token
   resp <- req |>
     req_headers(Authorization = paste("Bearer", access_jwt)) |>
@@ -46,11 +56,14 @@ search_posts <- function(
       is_transient = \(resp) resp_status(resp) %in% errors_for_retries
     ) %>%
     req_perform()
+  browser()
 
   # Get results
   results <- resp_body_json(resp)
   posts <- results$posts
   next_cursor <- results$cursor
+  created_at <- extract_many_posts_created_at(posts)
+  min_created_at <- min(unlist(created_at))
 
   if (verbose) {
     cat("Retrieved", length(posts), "posts.\n")
@@ -65,6 +78,7 @@ search_posts <- function(
   return(list(
     posts = posts,
     next_cursor = next_cursor,
+    min_created_at = min_created_at,
     has_more = !is.null(next_cursor) && length(posts) > 0
   ))
 }
@@ -94,8 +108,9 @@ search_posts <- function(
 search_posts_paginated <- function(
   keyword,
   access_jwt,
-  cursor = NULL,
   max_posts = NULL,
+  get_posts_until = NULL,
+  sort = "latest",
   number_of_posts_per_request = 100,
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
@@ -130,7 +145,8 @@ search_posts_paginated <- function(
   )
 
   all_posts <- list()
-  current_cursor <- cursor
+  current_date_max <- get_posts_until
+  # current_cursor <- cursor
   post_count <- 0
   request_count <- 0
   failed_requests <- 0
@@ -145,7 +161,9 @@ search_posts_paginated <- function(
     result <- robust_search_posts(
       keyword = keyword,
       access_jwt = access_jwt,
-      cursor = current_cursor,
+      cursor = NULL,
+      sort = sort,
+      until = current_date_max,
       number_of_posts_per_request = number_of_posts_per_request,
       search_url = search_url,
       max_retries = max_retries,
@@ -217,7 +235,7 @@ search_posts_paginated <- function(
     }
 
     # Update cursor for next iteration
-    current_cursor <- result$next_cursor
+    current_date_max <- result$min_created_at
 
     # Add delay between requests
     if (delay_between_requests > 0) {
@@ -238,10 +256,12 @@ search_posts_paginated <- function(
       cat("Failed requests for keyword", keyword, ":", failed_requests, "\n")
     }
   }
+  created_at <- extract_many_posts_created_at(all_posts)
 
   return(list(
     posts = all_posts,
-    final_cursor = current_cursor,
+    final_date_min = min(unlist(created_at)),
+    final_date_max = max(unlist(created_at)),
     total_requests = request_count,
     failed_requests = failed_requests
   ))

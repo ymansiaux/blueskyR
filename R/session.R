@@ -45,15 +45,15 @@ create_session <- function(
   resp_check_status(resp)
 
   session <- resp_body_json(resp)
-
-  saveRDS(session, "session.rds")
-  return(list(
+  session <- list(
     handle = session$handle,
     access_jwt = session$accessJwt,
     did = session$did,
     refreshJwt = session$refreshJwt,
     created = Sys.time()
-  ))
+  )
+  saveRDS(session, "session.rds")
+  return(session)
 }
 
 #' Refresh session
