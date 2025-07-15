@@ -110,6 +110,19 @@ search_posts_paginated <- function(
     stop("No internet connection")
   }
 
+  if (!file.exists("session.rds")) {
+    stop("Session file not found. Creating a session first.")
+    session <- create_session()
+    saveRDS(session, "session.rds")
+  }
+  session <- readRDS("session.rds")
+  if (session$created < Sys.time() - 3600) {
+    stop("Session expired. Creating a new session.")
+    session <- create_session()
+    saveRDS(session, "session.rds")
+  }
+  access_jwt <- session$access_jwt
+
   # Create a robust version of search_posts using purrr::possibly
   robust_search_posts <- possibly(
     search_posts,

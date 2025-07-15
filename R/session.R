@@ -6,14 +6,15 @@
 #'
 #' @return List with access_jwt and did
 #' @export
-#' @importFrom httr2 request req_body_json req_perform resp_check_status resp_body_json is_online
+#' @importFrom httr2 request req_body_json req_perform resp_check_status resp_body_json is_online req_headers
 #' @details You can find more information about the Bluesky API here: \url{https://docs.bsky.app/docs/api/com-atproto-server-create-session}
+#' @rdname session
 #' @examples
 #' \dontrun{
-#' get_bearer_token()
+#' create_session()
 #' }
 #'
-get_bearer_token <- function(
+create_session <- function(
   handle = Sys.getenv("bluesky_id"),
   password = Sys.getenv("bluesky_pwd"),
   login_url = "https://bsky.social/xrpc/com.atproto.server.createSession"
@@ -44,10 +45,50 @@ get_bearer_token <- function(
   resp_check_status(resp)
 
   session <- resp_body_json(resp)
+
+  saveRDS(session, "session.rds")
   return(list(
     handle = session$handle,
     access_jwt = session$accessJwt,
     did = session$did,
-    refreshJwt = session$refreshJwt
+    refreshJwt = session$refreshJwt,
+    created = Sys.time()
+  ))
+}
+
+#' Refresh session
+#'
+#' @param refresh_token Refresh token
+#' @param refresh_url Bluesky refresh URL
+#'
+#' @return List with access_jwt and did
+#' @export
+#' @rdname session
+refresh_session <- function(
+  refresh_token,
+  refresh_url = "https://bsky.social/xrpc/com.atproto.server.refreshSession"
+) {
+  if (!is_online()) {
+    stop("No internet connection")
+  }
+
+  if (is.null(refresh_token) || refresh_token == "") {
+    stop("Refresh token is required")
+  }
+
+  resp <- request(refresh_url) |>
+    req_headers(Authorization = paste("Bearer", refresh_token)) |>
+    req_body_json(list()) |>
+    req_perform()
+
+  resp_check_status(resp)
+
+  session <- resp_body_json(resp)
+  return(list(
+    access_jwt = session$accessJwt,
+    refresh_jwt = session$refreshJwt,
+    did = session$did,
+    handle = session$handle,
+    refreshed = Sys.time()
   ))
 }
