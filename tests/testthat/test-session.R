@@ -1,4 +1,4 @@
-test_that("get_bearer_token works with valid credentials", {
+test_that("create_session works with valid credentials", {
   mock_response <- list(
     handle = "test.bsky.app",
     accessJwt = "mock_access_token_123",
@@ -8,7 +8,7 @@ test_that("get_bearer_token works with valid credentials", {
 
   with_mocked_bindings(
     code = {
-      result <- get_bearer_token("test.bsky.app", "password123")
+      result <- create_session("test.bsky.app", "password123")
 
       expect_type(result, "list")
       expect_named(result, c("handle", "access_jwt", "did", "refreshJwt"))
@@ -26,11 +26,11 @@ test_that("get_bearer_token works with valid credentials", {
   )
 })
 
-test_that("get_bearer_token fails with no internet connection", {
+test_that("create_session fails with no internet connection", {
   with_mocked_bindings(
     code = {
       expect_error(
-        get_bearer_token("test.bsky.app", "password123"),
+        create_session("test.bsky.app", "password123"),
         "No internet connection"
       )
     },
@@ -38,16 +38,16 @@ test_that("get_bearer_token fails with no internet connection", {
   )
 })
 
-test_that("get_bearer_token fails with missing handle", {
+test_that("create_session fails with missing handle", {
   with_mocked_bindings(
     code = {
       expect_error(
-        get_bearer_token(handle = NULL, password = "password123"),
+        create_session(handle = NULL, password = "password123"),
         "Handle and password are required"
       )
 
       expect_error(
-        get_bearer_token(handle = "", password = "password123"),
+        create_session(handle = "", password = "password123"),
         "Handle is required"
       )
     },
@@ -55,16 +55,16 @@ test_that("get_bearer_token fails with missing handle", {
   )
 })
 
-test_that("get_bearer_token fails with missing password", {
+test_that("create_session fails with missing password", {
   with_mocked_bindings(
     code = {
       expect_error(
-        get_bearer_token(handle = "test.bsky.app", password = NULL),
+        create_session(handle = "test.bsky.app", password = NULL),
         "Handle and password are required"
       )
 
       expect_error(
-        get_bearer_token(handle = "test.bsky.app", password = ""),
+        create_session(handle = "test.bsky.app", password = ""),
         "Password is required"
       )
     },
@@ -72,11 +72,11 @@ test_that("get_bearer_token fails with missing password", {
   )
 })
 
-test_that("get_bearer_token fails with empty login URL", {
+test_that("create_session fails with empty login URL", {
   with_mocked_bindings(
     code = {
       expect_error(
-        get_bearer_token(
+        create_session(
           "test.bsky.app",
           "password123",
           login_url = ""
@@ -88,11 +88,11 @@ test_that("get_bearer_token fails with empty login URL", {
   )
 })
 
-test_that("get_bearer_token handles API errors", {
+test_that("create_session handles API errors", {
   with_mocked_bindings(
     code = {
       expect_error(
-        get_bearer_token("test.bsky.app", "wrongpassword"),
+        create_session("test.bsky.app", "wrongpassword"),
         "HTTP 401 Unauthorized"
       )
     },
