@@ -2,3 +2,4 @@
 inst/doc
 .Renviron
 docs
+session.rds
