@@ -27,12 +27,12 @@ test_that("set_date_boundaries works with a plan updated by a previous search in
   plan_new <- boundaries$plan
 
   expect_equal(
-    as.Date(plan_new$research_min_date),
+    plan_new$research_min_date,
     plan$boundaries_date_max
   )
 
   expect_equal(boundaries$max_text, "last message")
-  expect_equal(boundaries$min_text, as.character(plan$boundaries_date_max))
+  expect_equal(boundaries$min_text, plan$boundaries_date_max)
 })
 
 test_that("set_date_boundaries fails when we want to retrieve data that we already have", {
@@ -55,14 +55,14 @@ test_that("set_date_boundaries fails when we want to retrieve data that we alrea
 plan_initial <- list(
   boundaries_date_min = NULL,
   boundaries_date_max = NULL,
-  research_max_date = "2025-07-15",
+  research_max_date = "2025-07-14",
   research_min_date = NULL
 )
 
 ## We are retrieving 100 messages
 content <- list(
-  newest_message_in_a_query = as.POSIXct("2025-07-15T10:00:00"),
-  oldest_message_in_a_query = as.POSIXct("2025-07-14T10:00:00"),
+  newest_message_in_a_query = as.POSIXct("2025-07-14T10:00:00"),
+  oldest_message_in_a_query = as.POSIXct("2025-07-13T10:00:00"),
   has_more = TRUE
 )
 
@@ -95,8 +95,8 @@ expect_true(is.null(plan_new$research_min_date))
 
 ## We are retrieving 100 messages more
 content <- list(
-  newest_message_in_a_query = as.POSIXct("2025-07-14T10:00:00"),
-  oldest_message_in_a_query = as.POSIXct("2025-07-13T10:00:00"),
+  newest_message_in_a_query = as.POSIXct("2025-07-13T10:00:00"),
+  oldest_message_in_a_query = as.POSIXct("2025-07-12T10:00:00"),
   has_more = TRUE
 )
 
@@ -127,8 +127,8 @@ expect_true(is.null(plan_new$research_min_date))
 
 ## We are retrieving 100 messages more and say there are no more messages to retrieve
 content <- list(
-  newest_message_in_a_query = as.POSIXct("2025-07-13T10:00:00"),
-  oldest_message_in_a_query = as.POSIXct("2025-07-12T10:00:00"),
+  newest_message_in_a_query = as.POSIXct("2025-07-12T10:00:00"),
+  oldest_message_in_a_query = as.POSIXct("2025-07-11T10:00:00"),
   has_more = FALSE
 )
 
@@ -136,9 +136,8 @@ content <- list(
 plan_new <- update_plan_boundaries(plan_new, content)
 
 # We expect the next search to start from the oldest message in the previous search
-expect_equal(
-  plan_new$research_max_date,
-  content$oldest_message_in_a_query
+expect_true(
+  is.null(plan_new$research_max_date)
 )
 
 # We expect the boundaries date min to be updated to the oldest message in the previous search
@@ -184,3 +183,27 @@ expect_equal(
   boundaries$min_text,
   plan_to_restart_with$boundaries_date_max
 )
+
+# What happens if a query fails
+
+plan_initial <- list(
+  boundaries_date_min = NULL,
+  boundaries_date_max = NULL,
+  research_max_date = "2025-07-14",
+  research_min_date = NULL
+)
+
+## We are retrieving 100 messages
+content <- list(
+  newest_message_in_a_query = NULL,
+  oldest_message_in_a_query = NULL,
+  has_more = FALSE
+)
+
+plan_new <- update_plan_boundaries(plan_initial, content)
+
+expect_equal(plan_new$research_max_date, NA)
+expect_equal(plan_new$research_min_date, NA)
+expect_equal(plan_new$boundaries_date_max, NA)
+expect_equal(plan_new$boundaries_date_min, NA)
+expect_equal(plan_new$has_more, FALSE)
