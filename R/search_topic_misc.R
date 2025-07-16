@@ -26,14 +26,14 @@ set_date_boundaries <- function(plan) {
 
 update_plan_boundaries <- function(plan, content) {
     # If a request retrieved no messages, we stop the research
-    if (is.null(content$newest_message_in_a_query)) {
-        plan$research_max_date <- NA
-        plan$research_min_date <- NA
-        plan$boundaries_date_min <- NA
-        plan$boundaries_date_max <- NA
-        plan$has_more <- FALSE
-        return(plan)
-    }
+    # if (is.null(content$newest_message_in_a_query)) {
+    #     plan$research_max_date <- NA
+    #     plan$research_min_date <- NA
+    #     plan$boundaries_date_min <- NA
+    #     plan$boundaries_date_max <- NA
+    #     plan$has_more <- FALSE
+    #     return(plan)
+    # }
 
     plan$newest_messages <- c(
         plan$newest_messages,
@@ -43,7 +43,7 @@ update_plan_boundaries <- function(plan, content) {
     # If there are more messages to retrieve, we update the research max date
     if (content$has_more) {
         plan$research_max_date <- content$oldest_message_in_a_query
-        plan$research_min_date <- NULL
+        # plan$research_min_date <- NULL
         plan$boundaries_date_min <- min(c(
             plan$boundaries_date_min,
             content$oldest_message_in_a_query
