@@ -52,19 +52,22 @@ search_posts <- function(
     req_retry(
       max_tries = max_retries,
       retry_on_failure = TRUE,
-      backoff = \(resp) delay_between_retries,
+      # backoff = \(resp) delay_between_retries,
       is_transient = rate_limited_check,
       after = rerun_after_rate_limit
     ) %>%
     req_perform()
-  browser()
 
   # Get results
   results <- resp_body_json(resp)
   posts <- results$posts
   next_cursor <- results$cursor
   created_at <- extract_many_posts_created_at(posts)
-  min_created_at <- min(unlist(created_at))
+  if (length(created_at) == 0) {
+    min_created_at <- NULL
+  } else {
+    min_created_at <- min(unlist(created_at))
+  }
 
   if (verbose) {
     cat("Retrieved", length(posts), "posts.\n")
@@ -289,6 +292,8 @@ search_posts_paginated <- function(
 rate_limited_check <- function(resp) {
   if (resp_status(resp) == 429) {
     identical(resp_header(resp, "RateLimit-Remaining"), "0")
+  } else if (resp_status(resp) == 503) {
+    TRUE
   } else {
     FALSE
   }
@@ -296,6 +301,10 @@ rate_limited_check <- function(resp) {
 
 #' @noRd
 rerun_after_rate_limit <- function(resp) {
-  time <- as.numeric(resp_header(resp, "RateLimit-Reset"))
-  time - unclass(Sys.time())
+  if (resp_status(resp) == 429) {
+    time <- as.numeric(resp_header(resp, "RateLimit-Reset"))
+    time - unclass(Sys.time())
+  } else {
+    return(NA)
+  }
 }
