@@ -1,0 +1,232 @@
+search_topic <- function(plan, query, topic) {
+    token <- get_token()
+    # We set the upper bound of the research: if missing we set it to the current time
+    max_text <- as.character(plan$research_max_date)
+    if (is.null(plan$research_max_date)) {
+        plan$research_max_date <- Sys.time()
+        max_text <- "last message"
+    }
+
+    # We set the lower bound of the research
+    # If messages were retrived before, we set it to the newest message retrieved by the previous query
+    min_text <- as.character(plan$research_min_date)
+    if (is.null(plan$research_min_date)) {
+        min_text <- "first message"
+    }
+    if (!is.null(plan$boundaries_date_max)) {
+        plan$research_min_date <- plan$boundaries_date_max
+    }
+
+    msg(paste(
+        "searching for topic",
+        topic,
+        "from",
+        min_text,
+        "until",
+        max_text
+    ))
+
+    # Tweets are stored on the following folder structure data_folder/tweets/search/topic/year
+    # Ensuring that folders for storing tweets are created
+    year <- format(Sys.time(), "%Y")
+    create_dirs(topic, year)
+
+    # Tweets are stored as gzipped files with the following naming: "YYYY.MM.DD.counter.json.gz"
+    # Counter starts with 00001 and it is increased after the last file grows over 100M
+    # getting prefix and regular expression for tweet archive name
+    file_prefix <- paste(format(Sys.time(), "%Y.%m.%d"))
+    file_pattern <- paste(format(Sys.time(), "%Y\\.%m\\.%d"))
+    # TODO: update folder name
+    dir <- paste(conf$data_dir, "tweets", "search", topic, year, sep = "/")
+
+    # files will contain all files matching the naming pattern the last alphabetically is going to be measured to evaluate if a new file has to be started
+    files <- sort(list.files(path = dir, pattern = file_prefix))
+
+    # file_name will contain the name of the gz file to add
+    file_name <- (if (length(files) == 0) {
+        # default case for first file
+        paste(
+            file_prefix,
+            formatC(1, width = 5, format = "d", flag = "0"),
+            "json.gz",
+            sep = "."
+        )
+    } else {
+        #If last file matching pattern is smaller than 100MB we keep adding to the same file else a new incremented file is created
+        last <- files[[length(files)]]
+        if (file.info(paste(dir, last, sep = "/"))$size / (1024 * 1024) < 100) {
+            last
+        } else {
+            #Try to get current index after date as integer and increasing it by one, if not possible a 00001 index will be added
+            parts <- strsplit(gsub(".json.gz", "", last), split = "\\.")[[1]]
+            if (
+                length(parts) <= 3 || is.na(as.integer(parts[[length(parts)]]))
+            ) {
+                paste(
+                    c(
+                        parts,
+                        formatC(1, width = 5, format = "d", flag = "0"),
+                        "json.gz"
+                    ),
+                    collapse = "."
+                )
+            } else {
+                paste(
+                    c(
+                        parts[1:length(parts) - 1],
+                        formatC(
+                            as.integer(parts[[length(parts)]]) + 1,
+                            width = 5,
+                            format = "d",
+                            flag = "0"
+                        ),
+                        "json.gz"
+                    ),
+                    collapse = "."
+                )
+            }
+        }
+    })
+
+    # putting all parts together to get current file name
+    # TODO: update folder name
+    dest <- paste(
+        conf$data_dir,
+        "tweets",
+        "search",
+        topic,
+        year,
+        file_name,
+        sep = "/"
+    )
+
+    # Ensuring that query is smaller than 400 character (Twitter API limit)
+    if (nchar(query) < 400) {
+        # doing the tweet search and storing the response object to obtain details on resp
+        content <- search_posts(
+            keyword = query,
+            access_jwt = token,
+            since = plan$research_min_date,
+            until = plan$research_max_date
+        )
+        # Interpreting the content as JSON and storing the results on json (nested list with dataframes)
+        # interpreting is necessary to know the number of obtained tweets and the id of the oldest tweet found and to keep tweet collecting stats
+        # Saving uninterpreted content as a gzip archive
+        json <- content$results
+        tries <- 3
+        done <- FALSE
+        while (!done) {
+            tries <- tries - 1
+            tryCatch(
+                {
+                    post_result <- httr::POST(
+                        url = paste0(
+                            get_scala_tweets_url(),
+                            "?topic=",
+                            curl::curl_escape(topic),
+                            "&geolocate=true"
+                        ),
+                        httr::content_type_json(),
+                        body = content,
+                        encode = "raw",
+                        encoding = "UTF-8",
+                        httr::timeout((4 - tries) * 5)
+                    )
+                    if (httr::status_code(post_result) != 200) {
+                        print(substring(
+                            httr::content(
+                                post_result,
+                                "text",
+                                encoding = "UTF-8"
+                            ),
+                            1,
+                            100
+                        ))
+                        stop()
+                    }
+                    done = TRUE
+                },
+                error = function(e) {
+                    msg(paste("Error found while sending tweets", e))
+                    if (tries < 0) {
+                        stop("too many retries")
+                    }
+                }
+            )
+        }
+
+        # If newest messages were retrieved, we update the boundaries date max
+        plan$plan_boundaries_datemax <- max(c(
+            plan_boundaries_datemax,
+            json$newest_message_in_a_query
+        ))
+
+        plan$newest_messages <- c(
+            plan$newest_messages,
+            content$newest_message_in_a_query
+        )
+
+        # If there are more messages to retrieve, we update the research max date
+        if (content$has_more) {
+            plan$research_max_date <- content$oldest_message_in_a_query
+        }
+
+        # If there are no more messages to retrieve, we set the boundaries_date_max to the newest message retrieved in the entire research
+        if (!content$has_more) {
+            plan$boundaries_date_max <- max(c(
+                plan$boundaries_date_max,
+                plan$newest_messages
+            ))
+        }
+
+        # evaluating if rows are obtained
+        got_rows <- (exists("posts", json) & length(json$posts) > 0)
+        if (got_rows) {
+            year <- format(Sys.time(), "%Y")
+            # If rows were obtained we update the stat file that will stored the posted date period of each gz archive.
+            # This is used to improve aggregating performance, by targeting only the files containing tweets for a particular date
+            update_file_stats(
+                filename = gsub(".gz", "", file_name),
+                topic = topic,
+                year = year,
+                first_date = min(
+                    if (exists("statuses", json)) {
+                        parse_date(json$statuses$created_at)
+                    } else {
+                        strptime(
+                            json$data$created_at,
+                            format = "%Y-%m-%dT%H:%M:%OS",
+                            tz = "UTC"
+                        )
+                    }
+                ),
+                last_date = max(
+                    if (exists("statuses", json)) {
+                        parse_date(json$statuses$created_at)
+                    } else {
+                        strptime(
+                            json$data$created_at,
+                            format = "%Y-%m-%dT%H:%M:%OS",
+                            tz = "UTC"
+                        )
+                    }
+                )
+            )
+        }
+        # updating the plan data (new since_id, progress, number of collected tweets, etc.
+        request_finished(
+            plan,
+            got_rows = got_rows,
+            max_id = max_id,
+            since_id = new_since_id
+        )
+    } else {
+        # Managing the case when the query is too long
+        warning(
+            paste("Query too long for API for topic", topic),
+            immediate. = TRUE
+        )
+        plan$requests = plan$requests
+        plan
+    }
+}
