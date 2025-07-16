@@ -107,15 +107,6 @@ search_topic <- function(plan, query, topic, keep_old_logic = FALSE) {
             since = plan$research_min_date,
             until = plan$research_max_date
         )
-        content2 <- search_posts_paginated(
-            keyword = query,
-            access_jwt = token,
-            until = plan$research_max_date,
-            since = plan$research_min_date
-        )
-        elements <- extract_many_posts_elements(content2$posts)
-        purrr::map(elements, ~ .x$created_at) %>% unlist() %>% min()
-        purrr::map(elements, ~ .x$created_at) %>% unlist() %>% max()
 
         if (keep_old_logic) {
             # Interpreting the content as JSON and storing the results on json (nested list with dataframes)
