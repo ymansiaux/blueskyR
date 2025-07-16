@@ -32,7 +32,7 @@ token <- infos$access_jwt
 ```
 
 ```{r}
-posts <- search_posts_paginated(keyword = "covid19", access_jwt = token, number_of_posts_per_request = 100, get_posts_until = "2025-07-14", max_posts = 100)
+posts <- search_posts_paginated(keyword = "covid19", access_jwt = token, number_of_posts_per_request = 100, get_posts_until = "2025-07-14", max_posts = 300)
 
 posts <- search_posts_paginated(keyword = "measles OR sarampion OR rougeole", access_jwt = token, number_of_posts_per_request = 100, get_posts_until = "2025-07-14", max_posts = 100)
 

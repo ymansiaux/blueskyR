@@ -1,21 +1,11 @@
 search_topic <- function(plan, query, topic) {
     token <- get_token()
-    # We set the upper bound of the research: if missing we set it to the current time
-    max_text <- as.character(plan$research_max_date)
-    if (is.null(plan$research_max_date)) {
-        plan$research_max_date <- Sys.time()
-        max_text <- "last message"
-    }
 
-    # We set the lower bound of the research
-    # If messages were retrived before, we set it to the newest message retrieved by the previous query
-    min_text <- as.character(plan$research_min_date)
-    if (is.null(plan$research_min_date)) {
-        min_text <- "first message"
-    }
-    if (!is.null(plan$boundaries_date_max)) {
-        plan$research_min_date <- plan$boundaries_date_max
-    }
+    # Set date boundaries for the search
+    boundaries <- set_date_boundaries(plan)
+    plan <- boundaries$plan
+    max_text <- boundaries$max_text
+    min_text <- boundaries$min_text
 
     msg(paste(
         "searching for topic",
@@ -155,29 +145,8 @@ search_topic <- function(plan, query, topic) {
             )
         }
 
-        # If newest messages were retrieved, we update the boundaries date max
-        plan$plan_boundaries_datemax <- max(c(
-            plan_boundaries_datemax,
-            json$newest_message_in_a_query
-        ))
-
-        plan$newest_messages <- c(
-            plan$newest_messages,
-            content$newest_message_in_a_query
-        )
-
-        # If there are more messages to retrieve, we update the research max date
-        if (content$has_more) {
-            plan$research_max_date <- content$oldest_message_in_a_query
-        }
-
-        # If there are no more messages to retrieve, we set the boundaries_date_max to the newest message retrieved in the entire research
-        if (!content$has_more) {
-            plan$boundaries_date_max <- max(c(
-                plan$boundaries_date_max,
-                plan$newest_messages
-            ))
-        }
+        # Update plan boundaries based on search results
+        plan <- update_plan_boundaries(plan, content, json)
 
         # evaluating if rows are obtained
         got_rows <- (exists("posts", json) & length(json$posts) > 0)
