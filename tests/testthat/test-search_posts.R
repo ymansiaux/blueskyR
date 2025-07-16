@@ -31,7 +31,7 @@ test_that("search_posts works with valid parameters", {
       )
 
       expect_type(result, "list")
-      expect_length(result, 3)
+      expect_length(result, 4)
       post <- result[[1]]
       expect_equal(
         post[[1]]$uri,

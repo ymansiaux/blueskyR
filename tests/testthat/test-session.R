@@ -11,7 +11,10 @@ test_that("create_session works with valid credentials", {
       result <- create_session("test.bsky.app", "password123")
 
       expect_type(result, "list")
-      expect_named(result, c("handle", "access_jwt", "did", "refreshJwt"))
+      expect_named(
+        result,
+        c("handle", "access_jwt", "did", "refreshJwt", "created")
+      )
       expect_equal(result$handle, "test.bsky.app")
       expect_equal(result$access_jwt, "mock_access_token_123")
       expect_equal(result$did, "did:plc:mock123")

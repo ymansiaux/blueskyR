@@ -7,13 +7,14 @@
 search_posts_paginated(
   keyword,
   access_jwt,
-  cursor = NULL,
   max_posts = NULL,
+  get_posts_until = NULL,
+  sort = "latest",
   number_of_posts_per_request = 100,
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
   delay_between_retries = 5,
-  errors_for_retries = c(420, 429, 500, 503),
+  errors_for_retries = c(420, 500, 503),
   verbose = TRUE,
   delay_between_requests = 0.5,
   max_consecutive_failures = 5,
@@ -24,8 +25,6 @@ search_posts_paginated(
 \item{keyword}{Keyword to search for}
 
 \item{access_jwt}{Access token}
-
-\item{cursor}{Optional cursor to resume from a specific point}
 
 \item{max_posts}{Maximum number of posts to retrieve}
 
@@ -46,6 +45,8 @@ search_posts_paginated(
 \item{max_consecutive_failures}{Maximum number of consecutive failures before stopping}
 
 \item{otherwise}{Value to return if a request fails (default: NULL)}
+
+\item{cursor}{Optional cursor to resume from a specific point}
 }
 \value{
 List with posts and final cursor
