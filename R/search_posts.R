@@ -25,7 +25,7 @@ search_posts <- function(
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
   delay_between_retries = 5,
-  errors_for_retries = c(420, 429, 500, 503),
+  errors_for_retries = c(420, 500, 503),
   verbose = TRUE
 ) {
   if (!is_online()) {
@@ -65,8 +65,10 @@ search_posts <- function(
   created_at <- extract_many_posts_created_at(posts)
   if (length(created_at) == 0) {
     min_created_at <- NULL
+    max_created_at <- NULL
   } else {
     min_created_at <- min(unlist(created_at))
+    max_created_at <- max(unlist(created_at))
   }
 
   if (verbose) {
@@ -80,9 +82,10 @@ search_posts <- function(
 
   # Return both posts and next cursor for potential resumption
   return(list(
-    posts = posts,
+    results = results,
     next_cursor = next_cursor,
-    min_created_at = min_created_at,
+    oldest_message_in_a_query = min_created_at,
+    newest_message_in_a_query = max_created_at,
     has_more = !is.null(next_cursor) && length(posts) > 0
   ))
 }
