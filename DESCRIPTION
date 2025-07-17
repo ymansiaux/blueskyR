@@ -9,14 +9,17 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Suggests: 
-    jsonlite,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
     tibble
 VignetteBuilder: knitr
 Imports: 
+    bit64,
+    curl,
     digest,
+    httr,
     httr2,
+    jsonlite,
     magrittr,
     purrr

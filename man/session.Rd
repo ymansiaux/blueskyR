@@ -3,6 +3,7 @@
 \name{create_session}
 \alias{create_session}
 \alias{refresh_session}
+\alias{get_token}
 \title{Get bearer token}
 \usage{
 create_session(
@@ -15,6 +16,8 @@ refresh_session(
   refresh_token,
   refresh_url = "https://bsky.social/xrpc/com.atproto.server.refreshSession"
 )
+
+get_token()
 }
 \arguments{
 \item{handle}{Bluesky handle}
@@ -31,11 +34,15 @@ refresh_session(
 List with access_jwt and did
 
 List with access_jwt and did
+
+Token
 }
 \description{
 Get bearer token
 
 Refresh session
+
+Get token
 }
 \details{
 You can find more information about the Bluesky API here: \url{https://docs.bsky.app/docs/api/com-atproto-server-create-session}

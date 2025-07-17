@@ -15,7 +15,7 @@ search_posts(
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
   delay_between_retries = 5,
-  errors_for_retries = c(420, 429, 500, 503),
+  errors_for_retries = c(420, 500, 503),
   verbose = TRUE
 )
 }
@@ -25,6 +25,12 @@ search_posts(
 \item{access_jwt}{Access token}
 
 \item{cursor}{Optional cursor to resume from a specific point}
+
+\item{sort}{Sort order for the search}
+
+\item{since}{Start date for the search}
+
+\item{until}{End date for the search}
 
 \item{number_of_posts_per_request}{Number of posts to retrieve per request}
 

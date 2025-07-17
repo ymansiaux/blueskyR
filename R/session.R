@@ -92,3 +92,20 @@ refresh_session <- function(
     refreshed = Sys.time()
   ))
 }
+
+#' Get token
+#'
+#' @return Token
+#' @export
+#' @rdname session
+get_token <- function() {
+  if (file.exists("session.rds")) {
+    session <- readRDS("session.rds")
+    if (session$created < Sys.time() - 3600) {
+      session <- create_session()
+      saveRDS(session, "session.rds")
+    }
+    return(session$access_jwt)
+  }
+  return(create_session()$access_jwt)
+}

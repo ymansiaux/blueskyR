@@ -3,6 +3,9 @@
 #' @param keyword Keyword to search for
 #' @param access_jwt Access token
 #' @param cursor Optional cursor to resume from a specific point
+#' @param sort Sort order for the search
+#' @param since Start date for the search
+#' @param until End date for the search
 #' @param search_url Search URL
 #' @param number_of_posts_per_request Number of posts to retrieve per request
 #' @param max_retries Maximum number of retries
@@ -25,7 +28,7 @@ search_posts <- function(
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
   delay_between_retries = 5,
-  errors_for_retries = c(420, 429, 500, 503),
+  errors_for_retries = c(420, 500, 503),
   verbose = TRUE
 ) {
   if (!is_online()) {
@@ -65,8 +68,10 @@ search_posts <- function(
   created_at <- extract_many_posts_created_at(posts)
   if (length(created_at) == 0) {
     min_created_at <- NULL
+    max_created_at <- NULL
   } else {
     min_created_at <- min(unlist(created_at))
+    max_created_at <- max(unlist(created_at))
   }
 
   if (verbose) {
@@ -80,9 +85,10 @@ search_posts <- function(
 
   # Return both posts and next cursor for potential resumption
   return(list(
-    posts = posts,
+    results = results,
     next_cursor = next_cursor,
-    min_created_at = min_created_at,
+    oldest_message_in_a_query = min_created_at,
+    newest_message_in_a_query = max_created_at,
     has_more = !is.null(next_cursor) && length(posts) > 0
   ))
 }
@@ -91,7 +97,9 @@ search_posts <- function(
 #'
 #' @param keyword Keyword to search for
 #' @param access_jwt Access token
-#' @param cursor Optional cursor to resume from a specific point
+#' @param until End date for the search
+#' @param since Start date for the search
+#' @param sort Sort order for the search
 #' @param max_posts Maximum number of posts to retrieve
 #' @param search_url Search URL
 #' @param number_of_posts_per_request Number of posts to retrieve per request
@@ -113,7 +121,8 @@ search_posts_paginated <- function(
   keyword,
   access_jwt,
   max_posts = NULL,
-  get_posts_until = NULL,
+  until = NULL,
+  since = NULL,
   sort = "latest",
   number_of_posts_per_request = 100,
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
@@ -129,35 +138,22 @@ search_posts_paginated <- function(
     stop("No internet connection")
   }
 
-  if (!file.exists("session.rds")) {
-    stop("Session file not found. Creating a session first.")
-    session <- create_session()
-    saveRDS(session, "session.rds")
-  }
-  session <- readRDS("session.rds")
-  if (session$created < Sys.time() - 3600) {
-    stop("Session expired. Creating a new session.")
-    session <- create_session()
-    saveRDS(session, "session.rds")
-  }
-  access_jwt <- session$access_jwt
-
   # Very simple request to check if the token is valid and the rate limit is not exceeded
   # We don't want a R error to be thrown if the token is invalid or the rate limit is exceeded
   # We just want to know that the token is invalid or the rate limit is exceeded
 
-  simple_request <- request(search_url) |>
-    req_url_query(q = keyword, limit = 1, sort = sort) |>
-    req_headers(Authorization = paste("Bearer", access_jwt)) |>
-    req_error(is_error = \(resp) FALSE) |>
-    req_perform()
+  # simple_request <- request(search_url) |>
+  #   req_url_query(q = keyword, limit = 1, sort = sort) |>
+  #   req_headers(Authorization = paste("Bearer", access_jwt)) |>
+  #   req_error(is_error = \(resp) FALSE) |>
+  #   req_perform()
 
-  if (resp_status(simple_request) == 401) {
-    message("Invalid token. Creating a new session.")
-    session <- create_session()
-    saveRDS(session, "session.rds")
-    access_jwt <- session$access_jwt
-  }
+  # if (resp_status(simple_request) == 401) {
+  #   message("Invalid token. Creating a new session.")
+  #   session <- create_session()
+  #   saveRDS(session, "session.rds")
+  #   access_jwt <- session$access_jwt
+  # }
 
   # Create a robust version of search_posts using purrr::possibly
   robust_search_posts <- possibly(
@@ -166,7 +162,8 @@ search_posts_paginated <- function(
   )
 
   all_posts <- list()
-  current_date_max <- get_posts_until
+  current_date_max <- until
+  current_date_min <- since
   # current_cursor <- cursor
   post_count <- 0
   request_count <- 0
@@ -185,6 +182,7 @@ search_posts_paginated <- function(
       cursor = NULL,
       sort = sort,
       until = current_date_max,
+      since = current_date_min,
       number_of_posts_per_request = number_of_posts_per_request,
       search_url = search_url,
       max_retries = max_retries,
@@ -227,8 +225,8 @@ search_posts_paginated <- function(
     failed_requests <- 0
 
     # Add posts to our collection
-    all_posts <- c(all_posts, result$posts)
-    post_count <- post_count + length(result$posts)
+    all_posts <- c(all_posts, result$results$posts)
+    post_count <- post_count + length(result$results$posts)
 
     if (verbose) {
       cat(
@@ -256,7 +254,8 @@ search_posts_paginated <- function(
     }
 
     # Update cursor for next iteration
-    current_date_max <- result$min_created_at
+    current_date_max <- result$oldest_message_in_a_query
+    current_date_min <- result$newest_message_in_a_query
 
     # Add delay between requests
     if (delay_between_requests > 0) {
