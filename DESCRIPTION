@@ -15,7 +15,10 @@ Suggests:
     tibble
 VignetteBuilder: knitr
 Imports: 
+    bit64,
+    curl,
     digest,
+    httr,
     httr2,
     jsonlite,
     magrittr,

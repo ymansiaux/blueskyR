@@ -29,6 +29,12 @@ search_posts_paginated(
 
 \item{max_posts}{Maximum number of posts to retrieve}
 
+\item{until}{End date for the search}
+
+\item{since}{Start date for the search}
+
+\item{sort}{Sort order for the search}
+
 \item{number_of_posts_per_request}{Number of posts to retrieve per request}
 
 \item{search_url}{Search URL}
@@ -46,8 +52,6 @@ search_posts_paginated(
 \item{max_consecutive_failures}{Maximum number of consecutive failures before stopping}
 
 \item{otherwise}{Value to return if a request fails (default: NULL)}
-
-\item{cursor}{Optional cursor to resume from a specific point}
 }
 \value{
 List with posts and final cursor
