@@ -1,4 +1,17 @@
 #' @noRd
+write_json_atomic <- function(x, path, ...) {
+    file_name <- tail(strsplit(path, "/|\\\\")[[1]], 1)
+    dir_name <- substring(path, 1, nchar(path) - nchar(file_name) - 1)
+    swap_file <- tempfile(
+        pattern = paste("~", file_name, sep = ""),
+        tmpdir = dir_name
+    )
+    jsonlite::write_json(x = x, path = swap_file, ...)
+    file.rename(swap_file, path)
+}
+
+
+#' @noRd
 msg <- function(m) {
     message(paste0(Sys.time(), " [INFO]: -------> ", m))
 }
