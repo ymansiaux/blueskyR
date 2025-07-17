@@ -35,6 +35,19 @@ update_plan_boundaries <- function(plan, content) {
     #     return(plan)
     # }
 
+    # GOT FROM EPITWEETR
+    # increasing the number of requests
+    plan$requests <- plan$requests + 1
+
+    if (is.null(plan$start_on)) {
+        plan$start_on = Sys.time()
+    }
+
+    if (!content$has_more) {
+        plan$end_on <- Sys.time()
+    }
+    # END GOT FROM EPITWEETR
+
     plan$newest_messages <- c(
         plan$newest_messages,
         content$newest_message_in_a_query
@@ -82,4 +95,9 @@ update_plan_boundaries <- function(plan, content) {
         plan$newest_messages <- as.POSIXct(plan$newest_messages)
     }
     return(plan)
+}
+
+#' @noRd
+msg <- function(m) {
+    message(paste0(Sys.time(), " [INFO]: -------> ", m))
 }
