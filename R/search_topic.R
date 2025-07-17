@@ -107,12 +107,12 @@ search_topic <- function(plan, query, topic, keep_old_logic = FALSE) {
             since = plan$research_min_date,
             until = plan$research_max_date
         )
+        json <- content$results
 
         if (keep_old_logic) {
             # Interpreting the content as JSON and storing the results on json (nested list with dataframes)
             # interpreting is necessary to know the number of obtained tweets and the id of the oldest tweet found and to keep tweet collecting stats
             # Saving uninterpreted content as a gzip archive
-            json <- content$results
             tries <- 3
             done <- FALSE
             while (!done) {
@@ -156,41 +156,32 @@ search_topic <- function(plan, query, topic, keep_old_logic = FALSE) {
             }
         }
 
-        # Update plan boundaries based on search results
-        json <- content$results
-
         if (keep_old_logic) {
             # evaluating if rows are obtained
             got_rows <- (exists("posts", json) & length(json$posts) > 0)
             if (got_rows) {
                 year <- format(Sys.time(), "%Y")
+                first_date <- extract_many_posts_created_at(json$posts) %>%
+                    unlist() %>%
+                    min()
+                last_date <- extract_many_posts_created_at(json$posts) %>%
+                    unlist() %>%
+                    max()
                 # If rows were obtained we update the stat file that will stored the posted date period of each gz archive.
                 # This is used to improve aggregating performance, by targeting only the files containing tweets for a particular date
                 update_file_stats(
                     filename = gsub(".gz", "", file_name),
                     topic = topic,
                     year = year,
-                    first_date = min(
-                        if (exists("statuses", json)) {
-                            parse_date(json$statuses$created_at)
-                        } else {
-                            strptime(
-                                json$data$created_at,
-                                format = "%Y-%m-%dT%H:%M:%OS",
-                                tz = "UTC"
-                            )
-                        }
+                    first_date = strptime(
+                        first_date,
+                        format = "%Y-%m-%dT%H:%M:%OS",
+                        tz = "UTC"
                     ),
-                    last_date = max(
-                        if (exists("statuses", json)) {
-                            parse_date(json$statuses$created_at)
-                        } else {
-                            strptime(
-                                json$data$created_at,
-                                format = "%Y-%m-%dT%H:%M:%OS",
-                                tz = "UTC"
-                            )
-                        }
+                    last_date = strptime(
+                        last_date,
+                        format = "%Y-%m-%dT%H:%M:%OS",
+                        tz = "UTC"
                     )
                 )
             } else {
@@ -202,15 +193,9 @@ search_topic <- function(plan, query, topic, keep_old_logic = FALSE) {
                 plan$requests = plan$requests
                 return(plan)
             }
-            # updating the plan data (new since_id, progress, number of collected tweets, etc.
-            # request_finished(
-            #     plan,
-            #     got_rows = got_rows,
-            #     max_id = max_id,
-            #     since_id = new_since_id
-            # )
         }
     }
+    # Update plan boundaries based on search results
     plan <- update_plan_boundaries(plan, content)
 
     plan
