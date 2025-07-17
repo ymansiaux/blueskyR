@@ -108,3 +108,5 @@ test_that("create_session handles API errors", {
     }
   )
 })
+
+unlink("session.rds")

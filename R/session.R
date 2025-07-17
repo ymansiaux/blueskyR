@@ -107,5 +107,5 @@ get_token <- function() {
     }
     return(session$access_jwt)
   }
-  return(NULL)
+  return(create_session()$access_jwt)
 }
