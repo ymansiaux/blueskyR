@@ -7,7 +7,7 @@ search_topic <- function(plan, query, topic, keep_old_logic = FALSE) {
     max_text <- boundaries$max_text
     min_text <- boundaries$min_text
 
-    message(paste(
+    msg(paste(
         "searching for topic",
         topic,
         "from",
@@ -158,7 +158,6 @@ search_topic <- function(plan, query, topic, keep_old_logic = FALSE) {
 
         # Update plan boundaries based on search results
         json <- content$results
-        plan <- update_plan_boundaries(plan, content)
 
         if (keep_old_logic) {
             # evaluating if rows are obtained
@@ -194,23 +193,25 @@ search_topic <- function(plan, query, topic, keep_old_logic = FALSE) {
                         }
                     )
                 )
+            } else {
+                # Managing the case when the query is too long
+                warning(
+                    paste("Query too long for API for topic", topic),
+                    immediate. = TRUE
+                )
+                plan$requests = plan$requests
+                return(plan)
             }
             # updating the plan data (new since_id, progress, number of collected tweets, etc.
-            request_finished(
-                plan,
-                got_rows = got_rows,
-                max_id = max_id,
-                since_id = new_since_id
-            )
-        } else {
-            # Managing the case when the query is too long
-            warning(
-                paste("Query too long for API for topic", topic),
-                immediate. = TRUE
-            )
-            plan$requests = plan$requests
-            plan
+            # request_finished(
+            #     plan,
+            #     got_rows = got_rows,
+            #     max_id = max_id,
+            #     since_id = new_since_id
+            # )
         }
     }
+    plan <- update_plan_boundaries(plan, content)
+
     plan
 }
