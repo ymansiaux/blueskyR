@@ -15,7 +15,7 @@ search_posts(
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
   delay_between_retries = 5,
-  errors_for_retries = c(420, 429, 500, 503),
+  errors_for_retries = c(420, 500, 503),
   verbose = TRUE
 )
 }
