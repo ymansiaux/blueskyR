@@ -3,6 +3,9 @@
 #' @param keyword Keyword to search for
 #' @param access_jwt Access token
 #' @param cursor Optional cursor to resume from a specific point
+#' @param sort Sort order for the search
+#' @param since Start date for the search
+#' @param until End date for the search
 #' @param search_url Search URL
 #' @param number_of_posts_per_request Number of posts to retrieve per request
 #' @param max_retries Maximum number of retries
@@ -94,7 +97,9 @@ search_posts <- function(
 #'
 #' @param keyword Keyword to search for
 #' @param access_jwt Access token
-#' @param cursor Optional cursor to resume from a specific point
+#' @param until End date for the search
+#' @param since Start date for the search
+#' @param sort Sort order for the search
 #' @param max_posts Maximum number of posts to retrieve
 #' @param search_url Search URL
 #' @param number_of_posts_per_request Number of posts to retrieve per request
