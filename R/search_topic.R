@@ -1,6 +1,6 @@
-search_topic <- function(plan, query, topic, output_in_scala = FALSE) {
+search_topic <- function(plan, query, topic, output_in_scala = FALSE, conf) {
+    #, conf
     token <- get_token()
-
     # Set date boundaries for the search
     boundaries <- set_date_boundaries(plan)
     plan <- boundaries$plan
@@ -19,7 +19,7 @@ search_topic <- function(plan, query, topic, output_in_scala = FALSE) {
     # Tweets are stored on the following folder structure data_folder/tweets/search/topic/year
     # Ensuring that folders for storing tweets are created
     year <- format(Sys.time(), "%Y")
-    create_dirs(topic, year)
+    create_dirs(topic, year, conf) #, conf
 
     # Tweets are stored as gzipped files with the following naming: "YYYY.MM.DD.counter.json.gz"
     # Counter starts with 00001 and it is increased after the last file grows over 100M
@@ -176,7 +176,8 @@ search_topic <- function(plan, query, topic, output_in_scala = FALSE) {
                 last_date,
                 format = "%Y-%m-%dT%H:%M:%OS",
                 tz = "UTC"
-            )
+            ),
+            conf
         )
     }
     # else {

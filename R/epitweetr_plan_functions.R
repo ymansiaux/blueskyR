@@ -32,8 +32,8 @@ update_file_stats <- function(
     topic,
     year,
     first_date,
-    last_date #,
-    #conf
+    last_date,
+    conf
 ) {
     # getting the stat destination file
     stat_dir <- file.path(conf$data_dir, "stats")
@@ -324,7 +324,7 @@ last_search_time <- function() {
 }
 
 # create topic directories if they do not exist
-create_dirs <- function(topic = NA, year = NA) {
+create_dirs <- function(topic = NA, year = NA, conf) {
     #, conf
     if (!file.exists(paste(conf$data_dir, sep = "/"))) {
         dir.create(paste(conf$data_dir, sep = "/"), showWarnings = FALSE)
