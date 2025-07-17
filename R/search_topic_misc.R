@@ -11,6 +11,9 @@ set_date_boundaries <- function(plan) {
     if (is.null(plan$research_min_date)) {
         min_text <- "first message"
     }
+    if (!is.null(plan$research_min_date)) {
+        min_text <- plan$research_min_date
+    }
     if (!is.null(plan$boundaries_date_max)) {
         plan$research_min_date <- plan$boundaries_date_max
         min_text <- plan$research_min_date
@@ -95,9 +98,4 @@ update_plan_boundaries <- function(plan, content) {
         plan$newest_messages <- as.POSIXct(plan$newest_messages)
     }
     return(plan)
-}
-
-#' @noRd
-msg <- function(m) {
-    message(paste0(Sys.time(), " [INFO]: -------> ", m))
 }
