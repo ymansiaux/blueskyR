@@ -1,10 +1,9 @@
-conf <- new.env()
+conf <- list()
 conf$data_dir <- tempdir()
-unlink(list.files(conf$data_dir, full.names = TRUE, recursive = TRUE))
-
 
 test_that("search_topic works", {
   skip_on_ci()
+
   plan <- list(
     research_max_date = "2025-07-15T00:00:00",
     research_min_date = "2025-07-10T00:00:00",
@@ -14,7 +13,15 @@ test_that("search_topic works", {
   has_more <- TRUE
   expect_no_error(
     while (has_more) {
-      plan <- search_topic(plan, "covid19", "covid19", output_in_scala = FALSE)
+      unlink("session.rds")
+
+      plan <- search_topic(
+        plan,
+        "covid19",
+        "covid19",
+        output_in_scala = FALSE,
+        conf
+      )
       has_more <- plan$has_more
     }
   )
@@ -38,15 +45,18 @@ test_that("search_topic works", {
     json_content[[1]]$created_from <=
       transform_date_to_utc(plan$boundaries_date_max)
   )
-
   expect_equal(json_content[[1]]$topic, "covid19")
+  unlink(json_files, recursive = TRUE)
 })
 
-unlink(list.files(conf$data_dir, full.names = TRUE, recursive = TRUE))
+unlink("session.rds")
 
+conf <- list()
+conf$data_dir <- tempdir()
 
 test_that("search_topic works with a fake topic", {
   skip_on_ci()
+
   plan <- list(
     research_max_date = "2025-07-15T00:00:00",
     research_min_date = "2025-07-10T00:00:00",
@@ -54,14 +64,18 @@ test_that("search_topic works with a fake topic", {
   )
 
   has_more <- TRUE
-  random_topic <- paste0(sample(LETTERS, 100, replace = TRUE), collapse = "")
+  random_topic <- paste0(
+    sample(LETTERS, 100, replace = TRUE),
+    collapse = ""
+  )
   expect_no_error(
     while (has_more) {
       plan <- search_topic(
         plan,
         random_topic,
         random_topic,
-        output_in_scala = FALSE
+        output_in_scala = FALSE,
+        conf
       )
       has_more <- plan$has_more
     }
@@ -76,6 +90,8 @@ test_that("search_topic works with a fake topic", {
   json_files <- all_files[grepl("^\\d{4}.*\\.json$", basename(all_files))]
 
   expect_equal(length(json_files), 0)
+  unlink(json_files, recursive = TRUE)
 })
 
-unlink(list.files(conf$data_dir, full.names = TRUE, recursive = TRUE))
+
+unlink("session.rds")
