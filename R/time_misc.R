@@ -1,5 +1,3 @@
-utils::globalVariables(c("limit"))
-
 #' Convert date or datetime to ISO 8601 format for Bluesky API
 #'
 #' @param date_input A date or datetime object. Can be:
@@ -65,4 +63,9 @@ format_date_for_bluesky <- function(
         # Date only with time set to 00:00:00
         format(datetime, "%Y-%m-%dT00:00:00Z", tz = "UTC")
     }
+}
+
+transform_date_to_utc <- function(date, initial_tz = "Europe/Paris") {
+    date <- as.POSIXct(date, tz = initial_tz)
+    as.POSIXct(format(date, tz = "UTC"), tz = "UTC")
 }
