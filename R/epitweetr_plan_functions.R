@@ -27,7 +27,14 @@ msg <- function(m) {
 # year: current year to separate the stat files per year
 # first_date: oldest date on the tweets collected this will replace the stat if it is older than the current oldest date for the topic on the given file
 # last_date: newest date on the tweets collected this will replace the stat if it is newer than the current newest date for the topic on the given file
-update_file_stats <- function(filename, topic, year, first_date, last_date) {
+update_file_stats <- function(
+    filename,
+    topic,
+    year,
+    first_date,
+    last_date #,
+    #conf
+) {
     # getting the stat destination file
     stat_dir <- file.path(conf$data_dir, "stats")
     if (!file.exists(stat_dir)) {
@@ -96,63 +103,6 @@ parse_date <- function(str_date) {
     Sys.setlocale("LC_TIME", "C")
     strptime(str_date, format = "%a %b %d %H:%M:%S +0000 %Y", tz = "UTC")
 }
-
-# Perform a single page search on twitter API
-# This function will build the twitter search URL for performing a search request on the standard search
-# https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets
-# function called from the search_topic function
-# q: text query
-# since_id: id of the oldest targeted tweet
-# max_id: id of the newest targeted tweet
-# result_type: sort criteria for tweets (recent, popular and mix)
-twitter_search <- function(
-    q,
-    since_id = NULL,
-    max_id = NULL,
-    result_type = "recent",
-    count = 100
-) {
-    search_url = list()
-    #usont v1 endpoint when delegated authentication if user set to use it
-    if (!is_secret_set("app") || "1.1" %in% conf$api_version) {
-        search_url[["1.1"]] <- paste(
-            search_endpoint[["1.1"]],
-            "?q=",
-            URLencode(q, reserved = T),
-            if (!is.null(since_id)) "&since_id=" else "",
-            if (!is.null(since_id)) since_id else "",
-            if (!is.null(max_id)) "&max_id=" else "",
-            if (!is.null(max_id)) max_id else "",
-            "&result_type=",
-            result_type,
-            "&count=",
-            count,
-            "&include_entities=true",
-            sep = ""
-        )
-    }
-    if (is_secret_set("app") && "2" %in% conf$api_version) {
-        search_url[["2"]] <- paste(
-            search_endpoint[["2"]],
-            "?query=",
-            URLencode(gsub(" AND ", " ", q), reserved = T),
-            if (!is.null(since_id)) "&since_id=" else "",
-            if (!is.null(since_id)) since_id - 1 else "",
-            if (!is.null(max_id)) "&until_id=" else "",
-            if (!is.null(max_id)) max_id + 1 else "",
-            "&max_results=",
-            count,
-            "&expansions=author_id,geo.place_id,referenced_tweets.id,referenced_tweets.id.author_id",
-            "&place.fields=country,country_code,full_name,name,place_type",
-            "&tweet.fields=author_id,context_annotations,entities,created_at,geo,id,in_reply_to_user_id,lang,possibly_sensitive,referenced_tweets,source,text", #,geo.coordinates
-            "&user.fields=description,id,location,name,username",
-            sep = ""
-        )
-    }
-    res <- twitter_get(search_url)
-    return(res)
-}
-
 
 # @title get_plan S3 class constructor
 # @description Create a new 'get plan' for importing tweets using the Search API
@@ -375,6 +325,7 @@ last_search_time <- function() {
 
 # create topic directories if they do not exist
 create_dirs <- function(topic = NA, year = NA) {
+    #, conf
     if (!file.exists(paste(conf$data_dir, sep = "/"))) {
         dir.create(paste(conf$data_dir, sep = "/"), showWarnings = FALSE)
     }
