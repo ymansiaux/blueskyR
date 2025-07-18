@@ -236,6 +236,9 @@ search_posts_paginated <- function(
     # Update cursor for next iteration
     current_date_max <- result$oldest_message_in_a_query
     current_date_min <- result$newest_message_in_a_query
+    if (is.null(since)) {
+      current_date_min <- NULL
+    }
 
     # Add delay between requests
     if (delay_between_requests > 0) {

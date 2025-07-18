@@ -79,8 +79,9 @@ extract_post_elements <- function(post) {
 posts <- search_posts_paginated(
   keyword = "covid19",
   access_jwt = token,
-  until = "2025-07-14T00:00:00Z",
-  since = NULL
+  until = "2025-07-10T00:00:00",
+  since = NULL,
+  max_posts = 300
 )
 ```
 
@@ -107,3 +108,4 @@ elements[[1]]
 # Search topic
 
 A schema explaining the logic behind the search topic function is available in the file `inst/schema/search_topic.excalidraw`. Please download this file and drag and drop it in your browser at [excalidraw](https://excalidraw.com/).
+
