@@ -5,15 +5,15 @@
 #' @export
 #' @rdname extract_elements
 extract_post_elements <- function(post) {
-    list(
-        author_infos = extract_post_author_infos(post),
-        text = extract_post_text(post),
-        created_at = extract_post_created_at(post),
-        langs = extract_post_langs(post),
-        hashtags = extract_post_hashtags(post),
-        url = create_post_url(post),
-        id = create_post_id(post)
-    )
+  list(
+    author_infos = extract_post_author_infos(post),
+    text = extract_post_text(post),
+    created_at = extract_post_created_at(post),
+    langs = extract_post_langs(post),
+    hashtags = extract_post_hashtags(post),
+    url = create_post_url(post),
+    id = create_post_id(post)
+  )
 }
 
 #' Extract elements from many posts
@@ -25,9 +25,9 @@ extract_post_elements <- function(post) {
 #' @importFrom purrr map
 #' @rdname extract_elements
 extract_many_posts_elements <- function(posts) {
-    posts %>%
-        map(extract_post_elements) %>%
-        setNames(map(posts, create_post_id))
+  posts %>%
+    map(extract_post_elements) %>%
+    setNames(map(posts, create_post_id))
 }
 
 #' Extract author information from a post
@@ -37,11 +37,11 @@ extract_many_posts_elements <- function(posts) {
 #' @export
 #' @rdname extract_elements
 extract_post_author_infos <- function(post) {
-    list(
-        author_handle = post$author$handle,
-        author_did = post$author$did,
-        created_at = post$author$createdAt
-    )
+  list(
+    author_handle = post$author$handle,
+    author_did = post$author$did,
+    created_at = post$author$createdAt
+  )
 }
 
 #' Extract author information from many posts
@@ -52,8 +52,8 @@ extract_post_author_infos <- function(post) {
 #' @export
 #' @rdname extract_elements
 extract_many_posts_author_infos <- function(posts) {
-    posts %>%
-        map(extract_post_author_infos)
+  posts %>%
+    map(extract_post_author_infos)
 }
 
 #' Extract text from a post
@@ -63,7 +63,7 @@ extract_many_posts_author_infos <- function(posts) {
 #' @export
 #' @rdname extract_elements
 extract_post_text <- function(post) {
-    post$record$text
+  post$record$text
 }
 
 #' Extract text from many posts
@@ -74,8 +74,8 @@ extract_post_text <- function(post) {
 #' @export
 #' @rdname extract_elements
 extract_many_posts_text <- function(posts) {
-    posts %>%
-        map(extract_post_text)
+  posts %>%
+    map(extract_post_text)
 }
 
 #' Extract created at from a post
@@ -85,7 +85,7 @@ extract_many_posts_text <- function(posts) {
 #' @export
 #' @rdname extract_elements
 extract_post_created_at <- function(post) {
-    post$record$createdAt
+  post$record$createdAt
 }
 
 #' Extract created at from many posts
@@ -96,8 +96,8 @@ extract_post_created_at <- function(post) {
 #' @export
 #' @rdname extract_elements
 extract_many_posts_created_at <- function(posts) {
-    posts %>%
-        map(extract_post_created_at)
+  posts %>%
+    map(extract_post_created_at)
 }
 
 #' Extract langs from a post
@@ -107,9 +107,9 @@ extract_many_posts_created_at <- function(posts) {
 #' @export
 #' @rdname extract_elements
 extract_post_langs <- function(post) {
-    post$record$langs %>%
-        unlist() %>%
-        paste(collapse = "|")
+  post$record$langs %>%
+    unlist() %>%
+    paste(collapse = "|")
 }
 
 #' Extract langs from many posts
@@ -120,8 +120,8 @@ extract_post_langs <- function(post) {
 #' @export
 #' @rdname extract_elements
 extract_many_posts_langs <- function(posts) {
-    posts %>%
-        map(extract_post_langs)
+  posts %>%
+    map(extract_post_langs)
 }
 
 #' Extract hashtags from a post
@@ -132,10 +132,10 @@ extract_many_posts_langs <- function(posts) {
 #' @export
 #' @rdname extract_elements
 extract_post_hashtags <- function(post) {
-    post$record$facets %>%
-        map("features") %>%
-        map(function(.x) map(.x, "tag")) %>%
-        unlist()
+  post$record$facets %>%
+    map("features") %>%
+    map(function(.x) map(.x, "tag")) %>%
+    unlist()
 }
 
 #' Extract hashtags from many posts
@@ -146,8 +146,8 @@ extract_post_hashtags <- function(post) {
 #' @export
 #' @rdname extract_elements
 extract_many_posts_hashtags <- function(posts) {
-    posts %>%
-        map(extract_post_hashtags)
+  posts %>%
+    map(extract_post_hashtags)
 }
 
 #' Create post URL
@@ -157,23 +157,23 @@ extract_many_posts_hashtags <- function(posts) {
 #' @export
 #' @rdname extract_elements
 create_post_url <- function(post) {
-    # Check if post has uri
-    if (is.null(post$uri)) {
-        return(NULL)
-    }
+  # Check if post has uri
+  if (is.null(post$uri)) {
+    return(NULL)
+  }
 
-    # Extract post rkey
-    post_rkey = sub(".*/", "", post$uri)
+  # Extract post rkey
+  post_rkey = sub(".*/", "", post$uri)
 
-    # Construct web URL
-    web_url = paste0(
-        "https://bsky.app/profile/",
-        post$author$did,
-        "/post/",
-        sub(".*/", "", post$uri)
-    )
+  # Construct web URL
+  web_url = paste0(
+    "https://bsky.app/profile/",
+    post$author$did,
+    "/post/",
+    sub(".*/", "", post$uri)
+  )
 
-    return(web_url)
+  return(web_url)
 }
 
 #' Create post URL from many posts
@@ -184,8 +184,8 @@ create_post_url <- function(post) {
 #' @export
 #' @rdname extract_elements
 extract_many_posts_url <- function(posts) {
-    posts %>%
-        map(create_post_url)
+  posts %>%
+    map(create_post_url)
 }
 
 #' Create post ID
@@ -196,14 +196,14 @@ extract_many_posts_url <- function(posts) {
 #' @importFrom digest digest
 #' @rdname extract_elements
 create_post_id <- function(post) {
-    # Check if post has uri
-    if (is.null(post$uri)) {
-        return(NULL)
-    }
+  # Check if post has uri
+  if (is.null(post$uri)) {
+    return(NULL)
+  }
 
-    # Create post URL
-    post_url <- create_post_url(post)
-    digest(post_url, algo = "md5")
+  # Create post URL
+  post_url <- create_post_url(post)
+  digest(post_url, algo = "md5")
 }
 
 #' Create post ID from many posts
@@ -214,6 +214,6 @@ create_post_id <- function(post) {
 #' @export
 #' @rdname extract_elements
 extract_many_posts_id <- function(posts) {
-    posts %>%
-        map(create_post_id)
+  posts %>%
+    map(create_post_id)
 }

@@ -24,43 +24,43 @@
 #' # Current time
 #' format_date_for_bluesky(Sys.time())
 format_date_for_bluesky <- function(
-    date_input,
-    timezone = "UTC",
-    include_time = TRUE
+  date_input,
+  timezone = "UTC",
+  include_time = TRUE
 ) {
-    # Handle different input types
-    if (is.numeric(date_input)) {
-        # Assume Unix timestamp (seconds since epoch)
-        datetime <- as.POSIXct(date_input, origin = "1970-01-01", tz = timezone)
-    } else if (is.character(date_input)) {
-        # Try to parse as datetime first, then as date
-        datetime <- tryCatch(
-            {
-                as.POSIXct(date_input, tz = timezone)
-            },
-            error = function(e) {
-                # If datetime parsing fails, try date parsing
-                as.POSIXct(paste(date_input, "00:00:00"), tz = timezone)
-            }
-        )
-    } else if (inherits(date_input, "Date")) {
-        # Convert Date to POSIXct
-        datetime <- as.POSIXct(date_input, tz = timezone)
-    } else if (inherits(date_input, c("POSIXct", "POSIXlt"))) {
-        # Already a datetime object
-        datetime <- as.POSIXct(date_input, tz = timezone)
-    } else {
-        stop(
-            "Unsupported date input type. Please provide a Date, POSIXct, character string, or numeric timestamp."
-        )
-    }
+  # Handle different input types
+  if (is.numeric(date_input)) {
+    # Assume Unix timestamp (seconds since epoch)
+    datetime <- as.POSIXct(date_input, origin = "1970-01-01", tz = timezone)
+  } else if (is.character(date_input)) {
+    # Try to parse as datetime first, then as date
+    datetime <- tryCatch(
+      {
+        as.POSIXct(date_input, tz = timezone)
+      },
+      error = function(e) {
+        # If datetime parsing fails, try date parsing
+        as.POSIXct(paste(date_input, "00:00:00"), tz = timezone)
+      }
+    )
+  } else if (inherits(date_input, "Date")) {
+    # Convert Date to POSIXct
+    datetime <- as.POSIXct(date_input, tz = timezone)
+  } else if (inherits(date_input, c("POSIXct", "POSIXlt"))) {
+    # Already a datetime object
+    datetime <- as.POSIXct(date_input, tz = timezone)
+  } else {
+    stop(
+      "Unsupported date input type. Please provide a Date, POSIXct, character string, or numeric timestamp."
+    )
+  }
 
-    # Format based on include_time parameter
-    if (include_time) {
-        # Full ISO 8601 format with time
-        format(datetime, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
-    } else {
-        # Date only with time set to 00:00:00
-        format(datetime, "%Y-%m-%dT00:00:00Z", tz = "UTC")
-    }
+  # Format based on include_time parameter
+  if (include_time) {
+    # Full ISO 8601 format with time
+    format(datetime, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+  } else {
+    # Date only with time set to 00:00:00
+    format(datetime, "%Y-%m-%dT00:00:00Z", tz = "UTC")
+  }
 }

@@ -1,19 +1,19 @@
 #' @noRd
 write_json_atomic <- function(x, path, ...) {
-    file_name <- tail(strsplit(path, "/|\\\\")[[1]], 1)
-    dir_name <- substring(path, 1, nchar(path) - nchar(file_name) - 1)
-    swap_file <- tempfile(
-        pattern = paste("~", file_name, sep = ""),
-        tmpdir = dir_name
-    )
-    jsonlite::write_json(x = x, path = swap_file, ...)
-    file.rename(swap_file, path)
+  file_name <- tail(strsplit(path, "/|\\\\")[[1]], 1)
+  dir_name <- substring(path, 1, nchar(path) - nchar(file_name) - 1)
+  swap_file <- tempfile(
+    pattern = paste("~", file_name, sep = ""),
+    tmpdir = dir_name
+  )
+  jsonlite::write_json(x = x, path = swap_file, ...)
+  file.rename(swap_file, path)
 }
 
 
 #' @noRd
 msg <- function(m) {
-    message(paste0(Sys.time(), " [INFO]: -------> ", m))
+  message(paste0(Sys.time(), " [INFO]: -------> ", m))
 }
 
 
@@ -28,80 +28,80 @@ msg <- function(m) {
 # first_date: oldest date on the tweets collected this will replace the stat if it is older than the current oldest date for the topic on the given file
 # last_date: newest date on the tweets collected this will replace the stat if it is newer than the current newest date for the topic on the given file
 update_file_stats <- function(
-    filename,
-    topic,
-    year,
-    first_date,
-    last_date,
-    conf
+  filename,
+  topic,
+  year,
+  first_date,
+  last_date,
+  conf
 ) {
-    # getting the stat destination file
-    stat_dir <- file.path(conf$data_dir, "stats")
-    if (!file.exists(stat_dir)) {
-        dir.create(stat_dir)
-    }
-    stat_dir <- file.path(stat_dir, year)
-    if (!file.exists(stat_dir)) {
-        dir.create(stat_dir)
-    }
-    dest <- file.path(stat_dir, filename)
-    now <- Sys.time()
-    #Setting UTC so it can be compares with twitter created dates
-    attr(now, "tzone") <- "UTC"
+  # getting the stat destination file
+  stat_dir <- file.path(conf$data_dir, "stats")
+  if (!file.exists(stat_dir)) {
+    dir.create(stat_dir)
+  }
+  stat_dir <- file.path(stat_dir, year)
+  if (!file.exists(stat_dir)) {
+    dir.create(stat_dir)
+  }
+  dest <- file.path(stat_dir, filename)
+  now <- Sys.time()
+  #Setting UTC so it can be compares with twitter created dates
+  attr(now, "tzone") <- "UTC"
 
-    # reading current statistics if they exist
-    stats <-
-        if (!file.exists(dest)) {
-            list()
-        } else {
-            jsonlite::read_json(dest, simplifyVector = FALSE, auto_unbox = TRUE)
+  # reading current statistics if they exist
+  stats <-
+    if (!file.exists(dest)) {
+      list()
+    } else {
+      jsonlite::read_json(dest, simplifyVector = FALSE, auto_unbox = TRUE)
+    }
+
+  # matching record or creating new one
+  found <- FALSE
+  # updating stat file if it is found
+  if (length(stats) > 0) {
+    for (i in 1:length(stats)) {
+      if (stats[[i]]$topic == topic) {
+        found <- TRUE
+        stats[[i]]$collected_to <- now
+        if (stats[[i]]$created_from > first_date) {
+          stats[[i]]$created_from <- first_date
         }
-
-    # matching record or creating new one
-    found <- FALSE
-    # updating stat file if it is found
-    if (length(stats) > 0) {
-        for (i in 1:length(stats)) {
-            if (stats[[i]]$topic == topic) {
-                found <- TRUE
-                stats[[i]]$collected_to <- now
-                if (stats[[i]]$created_from > first_date) {
-                    stats[[i]]$created_from <- first_date
-                }
-                if (stats[[i]]$created_to < last_date) {
-                    stats[[i]]$created_to <- last_date
-                }
-                break
-            }
+        if (stats[[i]]$created_to < last_date) {
+          stats[[i]]$created_to <- last_date
         }
+        break
+      }
     }
-    # creating new statistics if not found
-    if (!found) {
-        stats[[length(stats) + 1]] <- list(
-            topic = topic,
-            created_from = first_date,
-            created_to = last_date,
-            collected_from = now,
-            collected_to = now
-        )
-    }
-
-    # saving modified JSON file
-    write_json_atomic(
-        stats,
-        dest,
-        pretty = TRUE,
-        force = TRUE,
-        auto_unbox = TRUE
+  }
+  # creating new statistics if not found
+  if (!found) {
+    stats[[length(stats) + 1]] <- list(
+      topic = topic,
+      created_from = first_date,
+      created_to = last_date,
+      collected_from = now,
+      collected_to = now
     )
+  }
+
+  # saving modified JSON file
+  write_json_atomic(
+    stats,
+    dest,
+    pretty = TRUE,
+    force = TRUE,
+    auto_unbox = TRUE
+  )
 }
 
 # Helper function to parse Twitter date as provided by the Twitter API
 parse_date <- function(str_date) {
-    curLocale <- Sys.getlocale("LC_TIME")
-    on.exit(Sys.setlocale("LC_TIME", curLocale))
-    Sys.setlocale("LC_TIME", "C")
-    strptime(str_date, format = "%a %b %d %H:%M:%S +0000 %Y", tz = "UTC")
+  curLocale <- Sys.getlocale("LC_TIME")
+  on.exit(Sys.setlocale("LC_TIME", curLocale))
+  Sys.setlocale("LC_TIME", "C")
+  strptime(str_date, format = "%a %b %d %H:%M:%S +0000 %Y", tz = "UTC")
 }
 
 # @title get_plan S3 class constructor
@@ -132,58 +132,58 @@ parse_date <- function(str_date) {
 # @rdname get_plan
 # @importFrom bit64 as.integer64
 get_plan <- function(
-    expected_end,
-    scheduled_for = Sys.time(),
-    start_on = NULL,
-    end_on = NULL,
-    max_id = NULL,
-    since_id = NULL,
-    since_target = NULL,
-    results_span = 0,
-    requests = 0,
-    progress = 0.0
+  expected_end,
+  scheduled_for = Sys.time(),
+  start_on = NULL,
+  end_on = NULL,
+  max_id = NULL,
+  since_id = NULL,
+  since_target = NULL,
+  results_span = 0,
+  requests = 0,
+  progress = 0.0
 ) {
-    me <- list(
-        "expected_end" = if (!is.null(unlist(expected_end))) {
-            strptime(unlist(expected_end), "%Y-%m-%d %H:%M:%S")
-        } else {
-            NULL
-        },
-        "scheduled_for" = if (!is.null(unlist(scheduled_for))) {
-            strptime(unlist(scheduled_for), "%Y-%m-%d %H:%M:%S")
-        } else {
-            NULL
-        },
-        "start_on" = if (!is.null(unlist(start_on))) {
-            strptime(unlist(start_on), "%Y-%m-%d %H:%M:%S")
-        } else {
-            NULL
-        },
-        "end_on" = if (!is.null(unlist(end_on))) {
-            strptime(unlist(end_on), "%Y-%m-%d %H:%M:%S")
-        } else {
-            NULL
-        },
-        "max_id" = if (!is.null(unlist(max_id))) {
-            bit64::as.integer64(unlist(max_id))
-        } else {
-            NULL
-        },
-        "since_id" = if (!is.null(unlist(since_id))) {
-            bit64::as.integer64(unlist(since_id))
-        } else {
-            NULL
-        },
-        "since_target" = if (!is.null(unlist(since_target))) {
-            bit64::as.integer64(unlist(since_target))
-        } else {
-            NULL
-        },
-        "requests" = unlist(requests),
-        "progress" = unlist(progress)
-    )
-    class(me) <- append(class(me), "get_plan")
-    return(me)
+  me <- list(
+    "expected_end" = if (!is.null(unlist(expected_end))) {
+      strptime(unlist(expected_end), "%Y-%m-%d %H:%M:%S")
+    } else {
+      NULL
+    },
+    "scheduled_for" = if (!is.null(unlist(scheduled_for))) {
+      strptime(unlist(scheduled_for), "%Y-%m-%d %H:%M:%S")
+    } else {
+      NULL
+    },
+    "start_on" = if (!is.null(unlist(start_on))) {
+      strptime(unlist(start_on), "%Y-%m-%d %H:%M:%S")
+    } else {
+      NULL
+    },
+    "end_on" = if (!is.null(unlist(end_on))) {
+      strptime(unlist(end_on), "%Y-%m-%d %H:%M:%S")
+    } else {
+      NULL
+    },
+    "max_id" = if (!is.null(unlist(max_id))) {
+      bit64::as.integer64(unlist(max_id))
+    } else {
+      NULL
+    },
+    "since_id" = if (!is.null(unlist(since_id))) {
+      bit64::as.integer64(unlist(since_id))
+    } else {
+      NULL
+    },
+    "since_target" = if (!is.null(unlist(since_target))) {
+      bit64::as.integer64(unlist(since_target))
+    } else {
+      NULL
+    },
+    "requests" = unlist(requests),
+    "progress" = unlist(progress)
+  )
+  class(me) <- append(class(me), "get_plan")
+  return(me)
 }
 
 
@@ -208,175 +208,173 @@ get_plan <- function(
 # }
 # @rdname update_plans
 update_plans <- function(plans = list(), schedule_span) {
-    # Testing if there are plans present
-    if (length(plans) == 0) {
-        # Getting default plan for when no existing plans are present setting the expected end
-        return(list(get_plan(expected_end = Sys.time() + 60 * schedule_span)))
-    } else if (
-        plans[[1]]$requests > 0 && plans[[1]]$expected_end < Sys.time()
-    ) {
-        # creating a new plan if expected end has passed
-        first <-
-            get_plan(
-                expected_end = if (
-                    Sys.time() > plans[[1]]$expected_end + 60 * schedule_span
-                ) {
-                    Sys.time() + 60 * schedule_span
-                } else {
-                    plans[[1]]$expected_end + 60 * schedule_span
-                },
-                since_target = plans[[1]]$max_id + 1
-            )
-        # removing ended plans
-        non_ended <- plans[sapply(plans, function(x) is.null(x$end_on))]
-        # removing plans if more of 100 plans are activeff
-        return(append(
-            list(first),
-            if (length(non_ended) < 100) non_ended else non_ended[1:100]
-        ))
-    } else {
-        first <- plans[[1]]
-        rest <- plans[-1]
-        # removing ended plans
-        non_ended <- rest[unlist(sapply(rest, function(x) is.null(x$end_on)))]
-        # removing ended plans
-        return(append(
-            list(first),
-            if (length(non_ended) < 100) non_ended else non_ended[1:100]
-        ))
-    }
+  # Testing if there are plans present
+  if (length(plans) == 0) {
+    # Getting default plan for when no existing plans are present setting the expected end
+    return(list(get_plan(expected_end = Sys.time() + 60 * schedule_span)))
+  } else if (plans[[1]]$requests > 0 && plans[[1]]$expected_end < Sys.time()) {
+    # creating a new plan if expected end has passed
+    first <-
+      get_plan(
+        expected_end = if (
+          Sys.time() > plans[[1]]$expected_end + 60 * schedule_span
+        ) {
+          Sys.time() + 60 * schedule_span
+        } else {
+          plans[[1]]$expected_end + 60 * schedule_span
+        },
+        since_target = plans[[1]]$max_id + 1
+      )
+    # removing ended plans
+    non_ended <- plans[sapply(plans, function(x) is.null(x$end_on))]
+    # removing plans if more of 100 plans are activeff
+    return(append(
+      list(first),
+      if (length(non_ended) < 100) non_ended else non_ended[1:100]
+    ))
+  } else {
+    first <- plans[[1]]
+    rest <- plans[-1]
+    # removing ended plans
+    non_ended <- rest[unlist(sapply(rest, function(x) is.null(x$end_on)))]
+    # removing ended plans
+    return(append(
+      list(first),
+      if (length(non_ended) < 100) non_ended else non_ended[1:100]
+    ))
+  }
 }
 
 # Get next plan to plan to download
 next_plan <- function(plans) {
-    plans <- if ("get_plan" %in% class(plans)) list(plans) else plans
-    non_ended <- plans[sapply(plans, function(x) is.null(x$end_on))]
-    if (length(non_ended) == 0) {
-        return(NULL)
-    } else {
-        return(non_ended[[1]])
-    }
+  plans <- if ("get_plan" %in% class(plans)) list(plans) else plans
+  non_ended <- plans[sapply(plans, function(x) is.null(x$end_on))]
+  if (length(non_ended) == 0) {
+    return(NULL)
+  } else {
+    return(non_ended[[1]])
+  }
 }
 
 # finish the provided plans
 finish_plans <- function(plans = list()) {
-    # Testing if there are plans present
-    if (length(plans) == 0) {
-        list()
-    } else {
-        # creating a new plan if expected end has passed
-        lapply(plans, function(p) {
-            get_plan(
-                expected_end = strftime(
-                    if (is.null(p$end_on)) {
-                        Sys.time() - conf$schedule_span * 60
-                    } else {
-                        p$end_on
-                    },
-                    "%Y-%m-%d %H:%M:%S"
-                ),
-                scheduled_for = strftime(p$scheduled_for, "%Y-%m-%d %H:%M:%S"),
-                start_on = strftime(
-                    if (is.null(p$start_on)) {
-                        Sys.time() - conf$schedule_span * 60
-                    } else {
-                        p$start_on
-                    },
-                    "%Y-%m-%d %H:%M:%S"
-                ),
-                end_on = strftime(
-                    if (is.null(p$end_on)) {
-                        Sys.time() - conf$schedule_span * 60
-                    } else {
-                        p$end_on
-                    },
-                    "%Y-%m-%d %H:%M:%S"
-                ),
-                max_id = p$max_id,
-                since_id = p$since_target,
-                since_target = p$since_target,
-                requests = p$requests,
-                progress = 1.0
-            )
-        })
-    }
+  # Testing if there are plans present
+  if (length(plans) == 0) {
+    list()
+  } else {
+    # creating a new plan if expected end has passed
+    lapply(plans, function(p) {
+      get_plan(
+        expected_end = strftime(
+          if (is.null(p$end_on)) {
+            Sys.time() - conf$schedule_span * 60
+          } else {
+            p$end_on
+          },
+          "%Y-%m-%d %H:%M:%S"
+        ),
+        scheduled_for = strftime(p$scheduled_for, "%Y-%m-%d %H:%M:%S"),
+        start_on = strftime(
+          if (is.null(p$start_on)) {
+            Sys.time() - conf$schedule_span * 60
+          } else {
+            p$start_on
+          },
+          "%Y-%m-%d %H:%M:%S"
+        ),
+        end_on = strftime(
+          if (is.null(p$end_on)) {
+            Sys.time() - conf$schedule_span * 60
+          } else {
+            p$end_on
+          },
+          "%Y-%m-%d %H:%M:%S"
+        ),
+        max_id = p$max_id,
+        since_id = p$since_target,
+        since_target = p$since_target,
+        requests = p$requests,
+        progress = 1.0
+      )
+    })
+  }
 }
 
 # Calculating how long in seconds should epitweetr wait before executing one of the plans in the list which would be the case only if all plans are finished before the end of the search span
 can_wait_for <- function(plans) {
-    plans <- if ("get_plan" %in% class(plans)) list(plans) else plans
-    non_ended <- plans[sapply(plans, function(x) is.null(x$end_on))]
-    if (length(non_ended) == 0) {
-        expected_end <- Reduce(min, lapply(plans, function(x) x$expected_end))
-        return(ceiling(as.numeric(difftime(
-            expected_end,
-            Sys.time(),
-            units = "secs"
-        ))))
-    } else {
-        return(0)
-    }
+  plans <- if ("get_plan" %in% class(plans)) list(plans) else plans
+  non_ended <- plans[sapply(plans, function(x) is.null(x$end_on))]
+  if (length(non_ended) == 0) {
+    expected_end <- Reduce(min, lapply(plans, function(x) x$expected_end))
+    return(ceiling(as.numeric(difftime(
+      expected_end,
+      Sys.time(),
+      units = "secs"
+    ))))
+  } else {
+    return(0)
+  }
 }
 
 # Last search time on stored in the embedded database
 last_search_time <- function() {
-    last_fs_updates(c("tweets"))$tweets
+  last_fs_updates(c("tweets"))$tweets
 }
 
 # create topic directories if they do not exist
 create_dirs <- function(topic = NA, year = NA, conf) {
-    #, conf
-    if (!file.exists(paste(conf$data_dir, sep = "/"))) {
-        dir.create(paste(conf$data_dir, sep = "/"), showWarnings = FALSE)
+  #, conf
+  if (!file.exists(paste(conf$data_dir, sep = "/"))) {
+    dir.create(paste(conf$data_dir, sep = "/"), showWarnings = FALSE)
+  }
+  if (!file.exists(paste(conf$data_dir, "tweets", sep = "/"))) {
+    dir.create(
+      paste(conf$data_dir, "tweets", sep = "/"),
+      showWarnings = FALSE
+    )
+  }
+  if (!file.exists(paste(conf$data_dir, "tweets", "search", sep = "/"))) {
+    dir.create(
+      paste(conf$data_dir, "tweets", "search", sep = "/"),
+      showWarnings = FALSE
+    )
+  }
+  if (!is.na(topic) && !is.na(year)) {
+    if (
+      !file.exists(paste(
+        conf$data_dir,
+        "tweets",
+        "search",
+        topic,
+        sep = "/"
+      ))
+    ) {
+      dir.create(
+        paste(conf$data_dir, "tweets", "search", topic, sep = "/"),
+        showWarnings = FALSE
+      )
     }
-    if (!file.exists(paste(conf$data_dir, "tweets", sep = "/"))) {
-        dir.create(
-            paste(conf$data_dir, "tweets", sep = "/"),
-            showWarnings = FALSE
-        )
+    if (
+      !file.exists(paste(
+        conf$data_dir,
+        "tweets",
+        "search",
+        topic,
+        year,
+        sep = "/"
+      ))
+    ) {
+      dir.create(
+        paste(
+          conf$data_dir,
+          "tweets",
+          "search",
+          topic,
+          year,
+          sep = "/"
+        ),
+        showWarnings = FALSE
+      )
     }
-    if (!file.exists(paste(conf$data_dir, "tweets", "search", sep = "/"))) {
-        dir.create(
-            paste(conf$data_dir, "tweets", "search", sep = "/"),
-            showWarnings = FALSE
-        )
-    }
-    if (!is.na(topic) && !is.na(year)) {
-        if (
-            !file.exists(paste(
-                conf$data_dir,
-                "tweets",
-                "search",
-                topic,
-                sep = "/"
-            ))
-        ) {
-            dir.create(
-                paste(conf$data_dir, "tweets", "search", topic, sep = "/"),
-                showWarnings = FALSE
-            )
-        }
-        if (
-            !file.exists(paste(
-                conf$data_dir,
-                "tweets",
-                "search",
-                topic,
-                year,
-                sep = "/"
-            ))
-        ) {
-            dir.create(
-                paste(
-                    conf$data_dir,
-                    "tweets",
-                    "search",
-                    topic,
-                    year,
-                    sep = "/"
-                ),
-                showWarnings = FALSE
-            )
-        }
-    }
+  }
 }
