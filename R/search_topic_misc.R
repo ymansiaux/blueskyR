@@ -27,7 +27,7 @@ set_date_boundaries <- function(plan) {
 }
 
 
-update_plan_boundaries <- function(plan, content) {
+update_plan <- function(plan, content) {
     # If a request retrieved no messages, we stop the research
     # if (is.null(content$newest_message_in_a_query)) {
     #     plan$research_max_date <- NA
@@ -51,9 +51,14 @@ update_plan_boundaries <- function(plan, content) {
     }
     # END GOT FROM EPITWEETR
 
-    plan$newest_messages <- c(
-        plan$newest_messages,
+    plan$newest_messages_from_previous_queries <- c(
+        plan$newest_messages_from_previous_queries,
         content$newest_message_in_a_query
+    )
+
+    plan$oldest_messages_from_previous_queries <- c(
+        plan$oldest_messages_from_previous_queries,
+        content$oldest_message_in_a_query
     )
 
     # If there are more messages to retrieve, we update the research max date
@@ -70,7 +75,7 @@ update_plan_boundaries <- function(plan, content) {
     if (!content$has_more) {
         plan$boundaries_date_max <- max(c(
             plan$boundaries_date_max,
-            plan$newest_messages
+            plan$newest_messages_from_previous_queries
         ))
         plan$boundaries_date_min <- min(c(
             plan$boundaries_date_min,
@@ -78,24 +83,37 @@ update_plan_boundaries <- function(plan, content) {
         ))
         plan$research_min_date <- NULL
         plan$research_max_date <- NULL
-        plan$newest_messages <- NULL
+        # plan$newest_messages_from_previous_queries <- NULL
     }
 
     plan$has_more <- content$has_more
     if (!is.null(plan$boundaries_date_max)) {
-        plan$boundaries_date_max <- as.POSIXct(plan$boundaries_date_max)
+        plan$boundaries_date_max <- as.POSIXct(plan$boundaries_date_max) %>%
+            transform_date_to_utc()
     }
     if (!is.null(plan$boundaries_date_min)) {
-        plan$boundaries_date_min <- as.POSIXct(plan$boundaries_date_min)
+        plan$boundaries_date_min <- as.POSIXct(plan$boundaries_date_min) %>%
+            transform_date_to_utc()
     }
     if (!is.null(plan$research_max_date)) {
-        plan$research_max_date <- as.POSIXct(plan$research_max_date)
+        plan$research_max_date <- as.POSIXct(plan$research_max_date) %>%
+            transform_date_to_utc()
     }
     if (!is.null(plan$research_min_date)) {
-        plan$research_min_date <- as.POSIXct(plan$research_min_date)
+        plan$research_min_date <- as.POSIXct(plan$research_min_date) %>%
+            transform_date_to_utc()
     }
-    if (!is.null(plan$newest_messages)) {
-        plan$newest_messages <- as.POSIXct(plan$newest_messages)
+
+    if (!is.null(plan$newest_messages_from_previous_queries)) {
+        plan$newest_messages_from_previous_queries <-
+            plan$newest_messages_from_previous_queries %>%
+            transform_date_to_utc()
+    }
+    if (!is.null(plan$oldest_messages_from_previous_queries)) {
+        plan$oldest_messages_from_previous_queries <- as.POSIXct(
+            plan$oldest_messages_from_previous_queries
+        ) %>%
+            transform_date_to_utc()
     }
     return(plan)
 }
