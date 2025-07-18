@@ -1,6 +1,6 @@
 Package: blueskyR
 Title: A R package to interact with the Bluesky API
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person("Yohann", "Mansiaux", , "y.mansiaux@epiconcept.fr", role = c("aut", "cre"))
 Description: A R package to interact with the Bluesky API.
