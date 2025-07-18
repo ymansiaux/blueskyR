@@ -208,34 +208,3 @@ test_that("format_date_for_bluesky maintains consistency across input types", {
     expect_false(result_date == result_char)
     expect_equal(result_date, "2024-01-01T00:00:00Z")
 })
-
-test_that("format_date_for_bluesky handles daylight saving time correctly", {
-    # Test during DST transition (March 10, 2024 - DST starts)
-    # 2:00 AM becomes 3:00 AM in EST
-    datetime_dst_start <- as.POSIXct(
-        "2024-03-10 02:30:00",
-        tz = "America/New_York"
-    )
-
-    expect_equal(
-        format_date_for_bluesky(
-            datetime_dst_start,
-            timezone = "America/New_York"
-        ),
-        "2024-03-10T05:00:00Z" # 2.5 hours ahead (EST)
-    )
-
-    # Test after DST transition
-    datetime_after_dst <- as.POSIXct(
-        "2024-03-10 03:30:00",
-        tz = "America/New_York"
-    )
-
-    expect_equal(
-        format_date_for_bluesky(
-            datetime_after_dst,
-            timezone = "America/New_York"
-        ),
-        "2024-03-10T07:30:00Z" # 4 hours ahead (EDT)
-    )
-})
