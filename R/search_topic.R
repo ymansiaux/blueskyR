@@ -179,6 +179,11 @@ search_topic <- function(plan, query, topic, output_in_scala = FALSE, conf) {
             ),
             conf
         )
+        plan <- update_plan(plan, content)
+    } else {
+        plan$has_more <- FALSE
+        plan$end_on <- Sys.time()
+        # ? plan$request <- 0
     }
     # else {
     # Managing the case when the query is too long
@@ -191,7 +196,6 @@ search_topic <- function(plan, query, topic, output_in_scala = FALSE, conf) {
     # }
     #}
     # Update plan boundaries based on search results
-    plan <- update_plan_boundaries(plan, content)
 
     plan
 }
