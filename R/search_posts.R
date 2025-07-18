@@ -17,6 +17,7 @@
 #' @return List with posts and next cursor for resumption
 #' @export
 #' @importFrom httr2 request req_url_query req_headers req_perform resp_body_json is_online resp_status last_response req_retry
+#' @importFrom lubridate as_datetime
 search_posts <- function(
   keyword,
   access_jwt,
@@ -70,8 +71,8 @@ search_posts <- function(
     min_created_at <- NULL
     max_created_at <- NULL
   } else {
-    min_created_at <- min(unlist(created_at))
-    max_created_at <- max(unlist(created_at))
+    min_created_at <- min(unlist(created_at)) %>% lubridate::as_datetime()
+    max_created_at <- max(unlist(created_at)) %>% lubridate::as_datetime()
   }
 
   if (verbose) {
