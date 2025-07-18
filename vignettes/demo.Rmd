@@ -1,0 +1,109 @@
+---
+title: "demo"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{demo}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(blueskyR)
+```
+
+# Authentification
+
+Your bluesky account is used to authenticate to the API.
+
+The bluesky handle and password are stored in the environment variables `bluesky_id` and `bluesky_pwd`.
+
+```{r, eval=FALSE}
+handle <- Sys.getenv("bluesky_id")
+password <- Sys.getenv("bluesky_pwd")
+
+infos <- create_session(handle, password)
+token <- infos$access_jwt
+```
+
+# Retrieve posts
+
+## Make a simple request
+
+```{r, eval=FALSE}
+posts <- search_posts(
+  keyword = "covid19",
+  access_jwt = token,
+  number_of_posts_per_request = 100,
+  since = NULL,
+  until = NULL
+)
+```
+
+### Analyze the content of the posts
+
+```{r, eval=FALSE}
+posts_content <- posts$results$posts
+elements <- extract_many_posts_elements(posts_content)
+elements[[1]]
+```
+
+`extract_many_posts_elements` is a function that extracts the elements from the posts.
+
+It calls `extract_post_elements` for each post, which calls many other functions to extract the elements from the post.
+
+```{r, eval=FALSE}
+extract_post_elements <- function(post) {
+  list(
+    author_infos = extract_post_author_infos(post),
+    text = extract_post_text(post),
+    created_at = extract_post_created_at(post),
+    langs = extract_post_langs(post),
+    hashtags = extract_post_hashtags(post),
+    url = create_post_url(post),
+    id = create_post_id(post)
+  )
+}
+```
+
+
+## Automatic pagination based on dates
+
+```{r, eval=FALSE}
+posts <- search_posts_paginated(
+  keyword = "covid19",
+  access_jwt = token,
+  until = "2025-07-14T00:00:00Z",
+  since = NULL
+)
+```
+
+### Analyze the content of the posts
+
+```{r, eval=FALSE}
+posts_content <- posts$posts
+elements <- extract_many_posts_elements(posts_content)
+elements[[1]]
+```
+
+# Data provided in the package
+
+```{r}
+posts <- jsonlite::read_json(system.file(package = "blueskyR", "posts.json"))
+```
+
+```{r}
+elements <- extract_many_posts_elements(posts)
+elements[[1]]
+```
+
+
+# Search topic
+
+A schema explaining the logic behind the search topic function is available in the file `inst/schema/search_topic.excalidraw`. Please download this file and drag and drop it in your browser at [excalidraw](https://excalidraw.com/).
