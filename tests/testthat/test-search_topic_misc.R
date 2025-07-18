@@ -19,8 +19,14 @@ test_that("set_date_boundaries works", {
 test_that("set_date_boundaries works with a plan updated by a previous search in a given query", {
   # We have a plan updated by a previous search in a given query
   plan <- list(
-    boundaries_date_min = as.POSIXct("2025-07-14"),
-    boundaries_date_max = as.POSIXct("2025-07-15")
+    boundaries_date_min = lubridate::as_datetime(
+      "2025-07-14T00:00:00",
+      tz = "UTC"
+    ),
+    boundaries_date_max = lubridate::as_datetime(
+      "2025-07-15T00:00:00",
+      tz = "UTC"
+    )
   )
 
   boundaries <- set_date_boundaries(plan)
@@ -38,9 +44,18 @@ test_that("set_date_boundaries works with a plan updated by a previous search in
 test_that("set_date_boundaries fails when we want to retrieve data that we already have", {
   # We have a plan updated by a previous search in a given query
   plan <- list(
-    boundaries_date_min = as.Date("2025-07-14"),
-    boundaries_date_max = as.Date("2025-07-15"),
-    research_max_date = as.Date("2025-07-10")
+    boundaries_date_min = lubridate::as_datetime(
+      "2025-07-14T00:00:00",
+      tz = "UTC"
+    ),
+    boundaries_date_max = lubridate::as_datetime(
+      "2025-07-15T00:00:00",
+      tz = "UTC"
+    ),
+    research_max_date = lubridate::as_datetime(
+      "2025-07-10T00:00:00",
+      tz = "UTC"
+    )
   )
 
   expect_error(
@@ -56,15 +71,22 @@ test_that("update_plan works", {
   plan_initial <- list(
     boundaries_date_min = NULL,
     boundaries_date_max = NULL,
-    research_max_date = "2025-07-14",
+    research_max_date = "2025-07-14T12:00:00" %>%
+      lubridate::as_datetime(tz = "UTC"),
     research_min_date = NULL,
     requests = 0
   )
 
   ## We are retrieving 100 messages
   content <- list(
-    newest_message_in_a_query = as.POSIXct("2025-07-14T10:00:00"),
-    oldest_message_in_a_query = as.POSIXct("2025-07-13T10:00:00"),
+    newest_message_in_a_query = lubridate::as_datetime(
+      "2025-07-13T23:00:00",
+      tz = "UTC"
+    ),
+    oldest_message_in_a_query = lubridate::as_datetime(
+      "2025-07-13T10:00:00",
+      tz = "UTC"
+    ),
     has_more = TRUE
   )
 
@@ -75,13 +97,13 @@ test_that("update_plan works", {
   # We expect the next search to start from the oldest message in the previous search
   expect_equal(
     plan_new$research_max_date,
-    content$oldest_message_in_a_query %>% transform_date_to_utc()
+    content$oldest_message_in_a_query
   )
 
   # We expect the boundaries date min to be updated to the oldest message in the previous search
   expect_equal(
     plan_new$boundaries_date_min,
-    content$oldest_message_in_a_query %>% transform_date_to_utc()
+    content$oldest_message_in_a_query
   )
 
   # We expect the has_more to be TRUE
@@ -107,8 +129,14 @@ test_that("update_plan works", {
 
   ## We are retrieving 100 messages more
   content <- list(
-    newest_message_in_a_query = as.POSIXct("2025-07-13T10:00:00"),
-    oldest_message_in_a_query = as.POSIXct("2025-07-12T10:00:00"),
+    newest_message_in_a_query = lubridate::as_datetime(
+      "2025-07-13T09:00:00",
+      tz = "UTC"
+    ),
+    oldest_message_in_a_query = lubridate::as_datetime(
+      "2025-07-12T10:00:00",
+      tz = "UTC"
+    ),
     has_more = TRUE
   )
 
@@ -116,13 +144,13 @@ test_that("update_plan works", {
   # We expect the next search to start from the oldest message in the previous search
   expect_equal(
     plan_new$research_max_date,
-    content$oldest_message_in_a_query %>% transform_date_to_utc()
+    content$oldest_message_in_a_query
   )
 
   # We expect the boundaries date min to be updated to the oldest message in the previous search
   expect_equal(
     plan_new$boundaries_date_min,
-    content$oldest_message_in_a_query %>% transform_date_to_utc()
+    content$oldest_message_in_a_query
   )
 
   # We expect the has_more to be TRUE
@@ -147,8 +175,14 @@ test_that("update_plan works", {
 
   ## We are retrieving 100 messages more and say there are no more messages to retrieve
   content <- list(
-    newest_message_in_a_query = as.POSIXct("2025-07-12T10:00:00"),
-    oldest_message_in_a_query = as.POSIXct("2025-07-11T10:00:00"),
+    newest_message_in_a_query = lubridate::as_datetime(
+      "2025-07-12T10:00:00",
+      tz = "UTC"
+    ),
+    oldest_message_in_a_query = lubridate::as_datetime(
+      "2025-07-11T10:00:00",
+      tz = "UTC"
+    ),
     has_more = FALSE
   )
 
@@ -162,7 +196,7 @@ test_that("update_plan works", {
   # We expect the boundaries date min to be updated to the oldest message in the previous search
   expect_equal(
     plan_new$boundaries_date_min,
-    content$oldest_message_in_a_query %>% transform_date_to_utc()
+    content$oldest_message_in_a_query
   )
 
   # We expect the has_more to be TRUE
@@ -171,7 +205,7 @@ test_that("update_plan works", {
   # We expect the boundaries date max to be the newest message ever
   expect_equal(
     plan_new$boundaries_date_max,
-    newest_message_ever %>% transform_date_to_utc()
+    newest_message_ever
   )
 
   # We expect the research min date to be NULL as we are at the end of the research
