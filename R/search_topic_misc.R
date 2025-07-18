@@ -27,7 +27,7 @@ set_date_boundaries <- function(plan) {
 }
 
 
-update_plan <- function(plan, content) {
+update_plan <- function(plan, content, tz = "UTC") {
     # If a request retrieved no messages, we stop the research
     # if (is.null(content$newest_message_in_a_query)) {
     #     plan$research_max_date <- NA
@@ -41,13 +41,14 @@ update_plan <- function(plan, content) {
     # GOT FROM EPITWEETR
     # increasing the number of requests
     plan$requests <- plan$requests + 1
+    # browser()
 
     if (is.null(plan$start_on)) {
-        plan$start_on = Sys.time()
+        plan$start_on = lubridate::as_datetime(Sys.time(), tz = tz)
     }
 
     if (!content$has_more) {
-        plan$end_on <- Sys.time()
+        plan$end_on <- lubridate::as_datetime(Sys.time(), tz = tz)
     }
     # END GOT FROM EPITWEETR
 
@@ -88,32 +89,34 @@ update_plan <- function(plan, content) {
 
     plan$has_more <- content$has_more
     if (!is.null(plan$boundaries_date_max)) {
-        plan$boundaries_date_max <- as.POSIXct(plan$boundaries_date_max) %>%
-            transform_date_to_utc()
+        plan$boundaries_date_max <- #as.POSIXct(plan$boundaries_date_max) %>%
+            plan$boundaries_date_max %>%
+            lubridate::as_datetime(tz = tz)
     }
     if (!is.null(plan$boundaries_date_min)) {
-        plan$boundaries_date_min <- as.POSIXct(plan$boundaries_date_min) %>%
-            transform_date_to_utc()
+        plan$boundaries_date_min <- #as.POSIXct(plan$boundaries_date_min) %>%
+            plan$boundaries_date_min %>% lubridate::as_datetime(tz = tz)
     }
     if (!is.null(plan$research_max_date)) {
-        plan$research_max_date <- as.POSIXct(plan$research_max_date) %>%
-            transform_date_to_utc()
+        plan$research_max_date <- #as.POSIXct(plan$research_max_date) %>%
+            plan$research_max_date %>% lubridate::as_datetime(tz = tz)
     }
     if (!is.null(plan$research_min_date)) {
-        plan$research_min_date <- as.POSIXct(plan$research_min_date) %>%
-            transform_date_to_utc()
+        plan$research_min_date <- #as.POSIXct(plan$research_min_date) %>%
+            plan$research_min_date %>% lubridate::as_datetime(tz = tz)
     }
 
     if (!is.null(plan$newest_messages_from_previous_queries)) {
         plan$newest_messages_from_previous_queries <-
             plan$newest_messages_from_previous_queries %>%
-            transform_date_to_utc()
+            lubridate::as_datetime(tz = tz)
     }
     if (!is.null(plan$oldest_messages_from_previous_queries)) {
-        plan$oldest_messages_from_previous_queries <- as.POSIXct(
-            plan$oldest_messages_from_previous_queries
-        ) %>%
-            transform_date_to_utc()
+        plan$oldest_messages_from_previous_queries <- #as.POSIXct(
+            #plan$oldest_messages_from_previous_queries
+            #)
+            plan$oldest_messages_from_previous_queries %>%
+            lubridate::as_datetime(tz = tz)
     }
     return(plan)
 }
