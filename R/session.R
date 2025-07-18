@@ -101,11 +101,31 @@ refresh_session <- function(
 get_token <- function() {
   if (file.exists("session.rds")) {
     session <- readRDS("session.rds")
+    access_jwt <- check_token_validity(session$access_jwt)
     if (session$created < Sys.time() - 3600) {
       session <- create_session()
-      saveRDS(session, "session.rds")
+      access_jwt <- session$access_jwt
     }
-    return(session$access_jwt)
+    return(access_jwt)
   }
   return(create_session()$access_jwt)
+}
+
+#' @noRd
+#' @rdname session
+#' @importFrom httr2 request req_url_query req_headers req_error req_perform resp_status
+check_token_validity <- function(
+  access_jwt,
+  search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts"
+) {
+  simple_request <- request(search_url) |>
+    req_url_query(q = "covid19", limit = 1, sort = "latest") |>
+    req_headers(Authorization = paste("Bearer", access_jwt)) |>
+    req_error(is_error = \(resp) FALSE) |>
+    req_perform()
+  if (resp_status(simple_request) == 401) {
+    message("Invalid token. Creating a new session.")
+    access_jwt <- create_session()$access_jwt
+  }
+  return(access_jwt)
 }
