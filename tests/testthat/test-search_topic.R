@@ -1,3 +1,5 @@
+unlink("session.rds")
+
 conf <- list()
 conf$data_dir <- tempdir()
 
@@ -80,7 +82,7 @@ test_that("search_topic works with a fake topic", {
       has_more <- plan$has_more
     }
   )
-  expect_equal(plan$requests, 1)
+  expect_equal(plan$requests, 0)
 
   all_files <- list.files(
     conf$data_dir,

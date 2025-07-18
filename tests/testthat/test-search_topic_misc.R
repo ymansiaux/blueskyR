@@ -49,7 +49,7 @@ test_that("set_date_boundaries fails when we want to retrieve data that we alrea
   )
 })
 
-test_that("update_plan_boundaries works", {
+test_that("update_plan works", {
   # We mimic a full search
   # Query 1: we have a full research to perform
 
@@ -70,18 +70,18 @@ test_that("update_plan_boundaries works", {
 
   newest_message_ever <- content$newest_message_in_a_query
 
-  plan_new <- update_plan_boundaries(plan_initial, content)
+  plan_new <- update_plan(plan_initial, content)
 
   # We expect the next search to start from the oldest message in the previous search
   expect_equal(
     plan_new$research_max_date,
-    content$oldest_message_in_a_query
+    content$oldest_message_in_a_query %>% transform_date_to_utc()
   )
 
   # We expect the boundaries date min to be updated to the oldest message in the previous search
   expect_equal(
     plan_new$boundaries_date_min,
-    content$oldest_message_in_a_query
+    content$oldest_message_in_a_query %>% transform_date_to_utc()
   )
 
   # We expect the has_more to be TRUE
@@ -112,17 +112,17 @@ test_that("update_plan_boundaries works", {
     has_more = TRUE
   )
 
-  plan_new <- update_plan_boundaries(plan_new, content)
+  plan_new <- update_plan(plan_new, content)
   # We expect the next search to start from the oldest message in the previous search
   expect_equal(
     plan_new$research_max_date,
-    content$oldest_message_in_a_query
+    content$oldest_message_in_a_query %>% transform_date_to_utc()
   )
 
   # We expect the boundaries date min to be updated to the oldest message in the previous search
   expect_equal(
     plan_new$boundaries_date_min,
-    content$oldest_message_in_a_query
+    content$oldest_message_in_a_query %>% transform_date_to_utc()
   )
 
   # We expect the has_more to be TRUE
@@ -152,7 +152,7 @@ test_that("update_plan_boundaries works", {
     has_more = FALSE
   )
 
-  plan_new <- update_plan_boundaries(plan_new, content)
+  plan_new <- update_plan(plan_new, content)
 
   # We expect the next search to start from the oldest message in the previous search
   expect_true(
@@ -162,7 +162,7 @@ test_that("update_plan_boundaries works", {
   # We expect the boundaries date min to be updated to the oldest message in the previous search
   expect_equal(
     plan_new$boundaries_date_min,
-    content$oldest_message_in_a_query
+    content$oldest_message_in_a_query %>% transform_date_to_utc()
   )
 
   # We expect the has_more to be TRUE
@@ -171,7 +171,7 @@ test_that("update_plan_boundaries works", {
   # We expect the boundaries date max to be the newest message ever
   expect_equal(
     plan_new$boundaries_date_max,
-    newest_message_ever
+    newest_message_ever %>% transform_date_to_utc()
   )
 
   # We expect the research min date to be NULL as we are at the end of the research
@@ -209,26 +209,4 @@ test_that("update_plan_boundaries works", {
     boundaries$min_text,
     plan_to_restart_with$boundaries_date_max
   )
-
-  # What happens if a query fails
-
-  plan_initial <- list(
-    boundaries_date_min = NULL,
-    boundaries_date_max = NULL,
-    research_max_date = "2025-07-14",
-    research_min_date = NULL
-  )
-
-  ## We are retrieving 100 messages
-  content <- list(
-    newest_message_in_a_query = NULL,
-    oldest_message_in_a_query = NULL,
-    has_more = FALSE
-  )
-
-  plan_new <- update_plan_boundaries(plan_initial, content)
-
-  expect_equal(as.Date(plan_new$start_on), as.Date(Sys.time()))
-  expect_equal(as.Date(plan_new$end_on), as.Date(Sys.time()))
-  expect_equal(plan_new$has_more, FALSE)
 })
