@@ -7,8 +7,8 @@
 #' @param since Start date for the search
 #' @param until End date for the search
 #' @param search_url Search URL
-#' @param number_of_posts_per_request Number of posts to retrieve per request
 #' @param max_retries Maximum number of retries
+#' @param number_of_posts_per_request Number of posts to retrieve per request
 #' @param delay_between_retries Delay between retries
 #' @param errors_for_retries Errors for retries
 #' @param verbose Whether to print progress messages
@@ -27,7 +27,7 @@ search_posts <- function(
   number_of_posts_per_request = 100,
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
-  delay_between_retries = 5,
+  delay_between_retries = NULL,
   errors_for_retries = c(420, 500, 503),
   verbose = TRUE
 ) {
@@ -104,7 +104,6 @@ search_posts <- function(
 #' @param search_url Search URL
 #' @param number_of_posts_per_request Number of posts to retrieve per request
 #' @param max_retries Maximum number of retries
-#' @param delay_between_retries Delay between retries
 #' @param errors_for_retries Errors for retries
 #' @param verbose Whether to print progress messages
 #' @param delay_between_requests Delay between requests to avoid rate limiting
@@ -127,7 +126,6 @@ search_posts_paginated <- function(
   number_of_posts_per_request = 100,
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
-  delay_between_retries = 5,
   errors_for_retries = c(420, 500, 503),
   verbose = TRUE,
   delay_between_requests = 0.5,
@@ -138,23 +136,6 @@ search_posts_paginated <- function(
     stop("No internet connection")
   }
 
-  # Very simple request to check if the token is valid and the rate limit is not exceeded
-  # We don't want a R error to be thrown if the token is invalid or the rate limit is exceeded
-  # We just want to know that the token is invalid or the rate limit is exceeded
-
-  # simple_request <- request(search_url) |>
-  #   req_url_query(q = keyword, limit = 1, sort = sort) |>
-  #   req_headers(Authorization = paste("Bearer", access_jwt)) |>
-  #   req_error(is_error = \(resp) FALSE) |>
-  #   req_perform()
-
-  # if (resp_status(simple_request) == 401) {
-  #   message("Invalid token. Creating a new session.")
-  #   session <- create_session()
-  #   saveRDS(session, "session.rds")
-  #   access_jwt <- session$access_jwt
-  # }
-
   # Create a robust version of search_posts using purrr::possibly
   robust_search_posts <- possibly(
     search_posts,
@@ -164,7 +145,6 @@ search_posts_paginated <- function(
   all_posts <- list()
   current_date_max <- until
   current_date_min <- since
-  # current_cursor <- cursor
   post_count <- 0
   request_count <- 0
   failed_requests <- 0
@@ -186,7 +166,6 @@ search_posts_paginated <- function(
       number_of_posts_per_request = number_of_posts_per_request,
       search_url = search_url,
       max_retries = max_retries,
-      delay_between_retries = delay_between_retries,
       errors_for_retries = errors_for_retries,
       verbose = FALSE
     )
