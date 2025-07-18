@@ -24,22 +24,29 @@ test_that("search_posts works with valid parameters", {
 
   with_mocked_bindings(
     code = {
-      result <- search_posts("covid19", "mock_token", max_posts = 100)
+      result <- search_posts(
+        "covid19",
+        "mock_token",
+        number_of_posts_per_request = 100
+      )
 
       expect_type(result, "list")
-      expect_length(result, 1)
+      expect_length(result, 5)
+      post <- result$results[[1]]
       expect_equal(
-        result[[1]]$uri,
+        post[[1]]$uri,
         "at://did:plc:test123/app.bsky.feed.post/abc123"
       )
-      expect_equal(result[[1]]$record$text, "Test post about covid19")
+      expect_equal(post[[1]]$record$text, "Test post about covid19")
     },
     is_online = online,
     request = mock_request,
     req_url_query = mock_req_url_query,
     req_headers = mock_req_headers,
     req_perform = function(req) mock_req_perform(req, mock_response),
-    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
+    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response),
+    last_response = mock_last_response,
+    resp_status = mock_resp_status
   )
 })
 
@@ -57,14 +64,17 @@ test_that("search_posts works when retrieving many posts", {
       result <- search_posts("covid19", "mock_token")
 
       expect_type(result, "list")
-      expect_length(result, 200)
+      posts <- result$results$posts
+      expect_length(posts, 200)
     },
     is_online = online,
     request = mock_request,
     req_url_query = mock_req_url_query,
     req_headers = mock_req_headers,
     req_perform = function(req) mock_req_perform(req, mock_response),
-    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
+    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response),
+    last_response = mock_last_response,
+    resp_status = mock_resp_status
   )
 })
 
@@ -91,14 +101,16 @@ test_that("search_posts handles empty results", {
       result <- search_posts("nonexistentkeyword", "mock_token")
 
       expect_type(result, "list")
-      expect_length(result, 0)
+      expect_length(result$results$posts, 0)
     },
     is_online = online,
     request = mock_request,
     req_url_query = mock_req_url_query,
     req_headers = mock_req_headers,
     req_perform = function(req) mock_req_perform(req, mock_response),
-    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response)
+    resp_body_json = function(resp) mock_resp_body_json(resp, mock_response),
+    last_response = mock_last_response,
+    resp_status = mock_resp_status
   )
 })
 
@@ -115,6 +127,8 @@ test_that("search_posts handles API errors", {
     req_url_query = mock_req_url_query,
     req_headers = mock_req_headers,
     req_perform = mock_error_req_perform,
-    resp_body_json = mock_error_resp_body_json
+    resp_body_json = mock_error_resp_body_json,
+    last_response = mock_last_response,
+    resp_status = mock_resp_status
   )
 })

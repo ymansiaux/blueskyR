@@ -2,3 +2,6 @@
 inst/doc
 .Renviron
 docs
+session.rds
+inst/posts_up_to_20250714.rds
+inst/storage

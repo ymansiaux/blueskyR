@@ -1,6 +1,6 @@
 Package: blueskyR
 Title: A R package to interact with the Bluesky API
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person("Yohann", "Mansiaux", , "y.mansiaux@epiconcept.fr", role = c("aut", "cre"))
 Description: A R package to interact with the Bluesky API.
@@ -9,10 +9,18 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Suggests: 
-    jsonlite,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tibble
 VignetteBuilder: knitr
 Imports: 
-    httr2
+    bit64,
+    curl,
+    digest,
+    httr,
+    httr2,
+    jsonlite,
+    lubridate,
+    magrittr,
+    purrr
