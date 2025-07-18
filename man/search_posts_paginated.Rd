@@ -14,7 +14,6 @@ search_posts_paginated(
   number_of_posts_per_request = 100,
   search_url = "https://bsky.social/xrpc/app.bsky.feed.searchPosts",
   max_retries = 20,
-  delay_between_retries = 5,
   errors_for_retries = c(420, 500, 503),
   verbose = TRUE,
   delay_between_requests = 0.5,
@@ -40,8 +39,6 @@ search_posts_paginated(
 \item{search_url}{Search URL}
 
 \item{max_retries}{Maximum number of retries}
-
-\item{delay_between_retries}{Delay between retries}
 
 \item{errors_for_retries}{Errors for retries}
 

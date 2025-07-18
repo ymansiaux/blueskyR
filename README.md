@@ -1,0 +1,1 @@
+Please look at the vignette for a demo of the package.
