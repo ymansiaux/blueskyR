@@ -1,8 +1,14 @@
-search_topic <- function(plan, query, topic, output_in_scala = FALSE, conf) {
+bsky_search_topic <- function(
+  plan,
+  query,
+  topic,
+  output_in_scala = FALSE,
+  conf
+) {
   #, conf
-  token <- get_token()
+  token <- bsky_get_token()
   # Set date boundaries for the search
-  boundaries <- set_date_boundaries(plan)
+  boundaries <- bsky_set_date_boundaries(plan)
   plan <- boundaries$plan
   max_text <- boundaries$max_text
   min_text <- boundaries$min_text
@@ -96,7 +102,7 @@ search_topic <- function(plan, query, topic, output_in_scala = FALSE, conf) {
   # Ensuring that query is smaller than 400 character (Twitter API limit)
   #if (nchar(query) < 400) {
   # doing the tweet search and storing the response object to obtain details on resp
-  content <- search_posts(
+  content <- bsky_search(
     keyword = query,
     access_jwt = token,
     since = plan$research_min_date,
@@ -155,10 +161,10 @@ search_topic <- function(plan, query, topic, output_in_scala = FALSE, conf) {
   got_rows <- (exists("posts", json) & length(json$posts) > 0)
   if (got_rows) {
     year <- format(Sys.time(), "%Y")
-    first_date <- extract_many_posts_created_at(json$posts) %>%
+    first_date <- bsky_extract_many_posts_created_at(json$posts) %>%
       unlist() %>%
       min()
-    last_date <- extract_many_posts_created_at(json$posts) %>%
+    last_date <- bsky_extract_many_posts_created_at(json$posts) %>%
       unlist() %>%
       max()
     # If rows were obtained we update the stat file that will stored the posted date period of each gz archive.
@@ -179,7 +185,7 @@ search_topic <- function(plan, query, topic, output_in_scala = FALSE, conf) {
       ),
       conf
     )
-    plan <- update_plan(plan, content)
+    plan <- bsky_update_plan(plan, content)
   } else {
     plan$has_more <- FALSE
     plan$end_on <- Sys.time()

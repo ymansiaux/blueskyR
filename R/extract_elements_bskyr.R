@@ -6,14 +6,14 @@
 #' @importFrom stats setNames
 #' @importFrom purrr map pluck pmap
 #' @rdname extract_elements_bskyr
-extract_many_posts_elements_bskyr <- function(posts) {
-  author_infos = extract_many_posts_author_infos_bskyr(posts)
-  text = extract_many_posts_text_bskyr(posts)
-  created_at = extract_many_posts_created_at_bskyr(posts)
-  langs = extract_many_posts_langs_bskyr(posts)
-  hashtags = extract_many_posts_hashtags_bskyr(posts)
-  url = extract_many_posts_url_bskyr(posts)
-  id = extract_many_posts_id_bskyr(posts)
+bsky_extract_many_posts_elements_bskyr <- function(posts) {
+  author_infos = bsky_extract_many_posts_author_infos_bskyr(posts)
+  text = bsky_extract_many_posts_text_bskyr(posts)
+  created_at = bsky_extract_many_posts_created_at_bskyr(posts)
+  langs = bsky_extract_many_posts_langs_bskyr(posts)
+  hashtags = bsky_extract_many_posts_hashtags_bskyr(posts)
+  url = bsky_extract_many_posts_url_bskyr(posts)
+  id = bsky_extract_many_posts_id_bskyr(posts)
   pmap(
     list(author_infos, text, created_at, langs, hashtags, url, id),
     ~ list(
@@ -36,7 +36,7 @@ extract_many_posts_elements_bskyr <- function(posts) {
 #' @importFrom purrr map pluck
 #' @export
 #' @rdname extract_elements_bskyr
-extract_many_posts_author_infos_bskyr <- function(posts) {
+bsky_extract_many_posts_author_infos_bskyr <- function(posts) {
   posts %>%
     pluck("author") %>%
     map(
@@ -55,7 +55,7 @@ extract_many_posts_author_infos_bskyr <- function(posts) {
 #' @importFrom purrr map pluck
 #' @export
 #' @rdname extract_elements_bskyr
-extract_many_posts_text_bskyr <- function(posts) {
+bsky_extract_many_posts_text_bskyr <- function(posts) {
   posts %>%
     pluck("record") %>%
     map("text")
@@ -68,7 +68,7 @@ extract_many_posts_text_bskyr <- function(posts) {
 #' @importFrom purrr map pluck
 #' @export
 #' @rdname extract_elements_bskyr
-extract_many_posts_created_at_bskyr <- function(posts) {
+bsky_extract_many_posts_created_at_bskyr <- function(posts) {
   posts %>%
     pluck("record") %>%
     map("createdAt")
@@ -82,7 +82,7 @@ extract_many_posts_created_at_bskyr <- function(posts) {
 #' @importFrom purrr map pluck
 #' @export
 #' @rdname extract_elements_bskyr
-extract_many_posts_langs_bskyr <- function(posts) {
+bsky_extract_many_posts_langs_bskyr <- function(posts) {
   posts %>%
     pluck("record") %>%
     map("langs") %>%
@@ -98,7 +98,7 @@ extract_many_posts_langs_bskyr <- function(posts) {
 #' @importFrom purrr map pluck list_flatten
 #' @export
 #' @rdname extract_elements_bskyr
-extract_many_posts_hashtags_bskyr <- function(posts) {
+bsky_extract_many_posts_hashtags_bskyr <- function(posts) {
   posts %>%
     pluck("record") %>%
     map("facets") %>%
@@ -113,7 +113,7 @@ extract_many_posts_hashtags_bskyr <- function(posts) {
 #' @return The URL of the post
 #' @export
 #' @rdname extract_elements_bskyr
-create_post_url_bskyr <- function(post_uri, author_did) {
+bsky_create_post_url_bskyr <- function(post_uri, author_did) {
   # Check if post has uri
   if (is.null(post_uri)) {
     return(NULL)
@@ -140,7 +140,7 @@ create_post_url_bskyr <- function(post_uri, author_did) {
 #' @importFrom purrr map pluck map2
 #' @export
 #' @rdname extract_elements_bskyr
-extract_many_posts_url_bskyr <- function(posts) {
+bsky_extract_many_posts_url_bskyr <- function(posts) {
   author_did <- posts %>%
     pluck("author") %>%
     map("did") %>%
@@ -148,7 +148,7 @@ extract_many_posts_url_bskyr <- function(posts) {
 
   post_uri <- posts %>% pluck("uri") %>% unlist()
 
-  map2(post_uri, author_did, create_post_url_bskyr)
+  map2(post_uri, author_did, bsky_create_post_url_bskyr)
 }
 
 #' Create post ID from many posts
@@ -158,7 +158,7 @@ extract_many_posts_url_bskyr <- function(posts) {
 #' @importFrom purrr map
 #' @export
 #' @rdname extract_elements_bskyr
-extract_many_posts_id_bskyr <- function(posts) {
-  extract_many_posts_url_bskyr(posts) %>%
+bsky_extract_many_posts_id_bskyr <- function(posts) {
+  bsky_extract_many_posts_url_bskyr(posts) %>%
     map(digest, algo = "md5")
 }

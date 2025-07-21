@@ -28,7 +28,7 @@ The bluesky handle and password are stored in the environment variables `bluesky
 handle <- Sys.getenv("bluesky_id")
 password <- Sys.getenv("bluesky_pwd")
 
-infos <- create_session(handle, password)
+infos <- bsky_create_session(handle, password)
 token <- infos$access_jwt
 ```
 
@@ -37,7 +37,7 @@ token <- infos$access_jwt
 ## Make a simple request
 
 ```{r, eval=FALSE}
-posts <- search_posts(
+posts <- bsky_search(
   keyword = "covid19",
   access_jwt = token,
   number_of_posts_per_request = 100,
@@ -50,24 +50,31 @@ posts <- search_posts(
 
 ```{r, eval=FALSE}
 posts_content <- posts$results$posts
-elements <- extract_many_posts_elements(posts_content)
+elements <- bsky_extract_many_posts_elements(posts_content)
 elements[[1]]
+
+p <- posts_content[[2]]
+names(p)
+
+record <- p$record
+names(record)
+record$facets
 ```
 
-`extract_many_posts_elements` is a function that extracts the elements from the posts.
+`bsky_extract_many_posts_elements` is a function that extracts the elements from the posts.
 
-It calls `extract_post_elements` for each post, which calls many other functions to extract the elements from the post.
+It calls `bsky_extract_post_elements` for each post, which calls many other functions to extract the elements from the post.
 
 ```{r, eval=FALSE}
-extract_post_elements <- function(post) {
+bsky_extract_post_elements <- function(post) {
   list(
-    author_infos = extract_post_author_infos(post),
-    text = extract_post_text(post),
+    author_infos = bsky_extract_post_author_infos(post),
+    text = bsky_extract_post_text(post),
     created_at = extract_post_created_at(post),
-    langs = extract_post_langs(post),
-    hashtags = extract_post_hashtags(post),
-    url = create_post_url(post),
-    id = create_post_id(post)
+    langs = bsky_extract_post_langs(post),
+    hashtags = bsky_extract_post_hashtags(post),
+    url = bsky_create_post_url(post),
+    id = bsky_create_post_id(post)
   )
 }
 ```
@@ -76,7 +83,7 @@ extract_post_elements <- function(post) {
 ## Automatic pagination based on dates
 
 ```{r, eval=FALSE}
-posts <- search_posts_paginated(
+posts <- bsky_search_paginated(
   keyword = "covid19",
   access_jwt = token,
   until = "2025-07-10T00:00:00",
@@ -89,7 +96,7 @@ posts <- search_posts_paginated(
 
 ```{r, eval=FALSE}
 posts_content <- posts$posts
-elements <- extract_many_posts_elements(posts_content)
+elements <- bsky_extract_many_posts_elements(posts_content)
 elements[[1]]
 ```
 
@@ -100,12 +107,12 @@ posts <- jsonlite::read_json(system.file(package = "blueskyR", "posts.json"))
 ```
 
 ```{r}
-elements <- extract_many_posts_elements(posts)
+elements <- bsky_extract_many_posts_elements(posts)
 elements[[1]]
 ```
 
 
 # Search topic
 
-A schema explaining the logic behind the search topic function is available in the file `inst/schema/search_topic.excalidraw`. Please download this file and drag and drop it in your browser at [excalidraw](https://excalidraw.com/).
+A schema explaining the logic behind the search topic function is available in the file `inst/schema/bsky_search_topic.excalidraw`. Please download this file and drag and drop it in your browser at [excalidraw](https://excalidraw.com/).
 
