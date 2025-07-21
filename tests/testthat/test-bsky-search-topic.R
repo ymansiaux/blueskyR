@@ -1,9 +1,9 @@
-unlink("session.rds")
+unlink("bsky_session.rds")
 
 conf <- list()
 conf$data_dir <- tempdir()
 
-test_that("search_topic works", {
+test_that("bsky_search_topic works", {
   skip_on_ci()
 
   plan <- list(
@@ -17,7 +17,7 @@ test_that("search_topic works", {
   has_more <- TRUE
   expect_no_error(
     while (has_more) {
-      plan <- search_topic(
+      plan <- bsky_search_topic(
         plan,
         "covid19",
         "covid19",
@@ -53,13 +53,13 @@ test_that("search_topic works", {
   unlink(json_files, recursive = TRUE)
 })
 
-unlink("session.rds")
+unlink("bsky_session.rds")
 
 
 conf <- list()
 conf$data_dir <- tempdir()
 
-test_that("search_topic works when a previous search has been performed", {
+test_that("bsky_search_topic works when a previous search has been performed", {
   skip_on_ci()
 
   plan <- list(
@@ -75,7 +75,7 @@ test_that("search_topic works when a previous search has been performed", {
   has_more <- TRUE
   expect_no_error(
     while (has_more) {
-      plan <- search_topic(
+      plan <- bsky_search_topic(
         plan,
         "covid19",
         "covid19",
@@ -98,13 +98,13 @@ test_that("search_topic works when a previous search has been performed", {
   unlink(json_files, recursive = TRUE)
 })
 
-unlink("session.rds")
+unlink("bsky_session.rds")
 
 
 conf <- list()
 conf$data_dir <- tempdir()
 
-test_that("search_topic works with a fake topic", {
+test_that("bsky_search_topic works with a fake topic", {
   skip_on_ci()
 
   plan <- list(
@@ -122,7 +122,7 @@ test_that("search_topic works with a fake topic", {
   )
   expect_no_error(
     while (has_more) {
-      plan <- search_topic(
+      plan <- bsky_search_topic(
         plan,
         random_topic,
         random_topic,
@@ -146,4 +146,4 @@ test_that("search_topic works with a fake topic", {
 })
 
 
-unlink("session.rds")
+unlink("bsky_session.rds")

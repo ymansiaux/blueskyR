@@ -202,12 +202,12 @@ get_plan <- function(
 # @examples
 # if(FALSE){
 #  #Getting default plan
-#  update_plans(plans = list(), schedule_span = 120)
+#  bsky_update_plans(plans = list(), schedule_span = 120)
 #  #Updating topics for first topic
-#  update_plans(plans = conf$topics[[1]]$plan, schedule_span = conf$collect_span)
+#  bsky_update_plans(plans = conf$topics[[1]]$plan, schedule_span = conf$collect_span)
 # }
-# @rdname update_plans
-update_plans <- function(plans = list(), schedule_span) {
+# @rdname bsky_update_plans
+bsky_update_plans <- function(plans = list(), schedule_span) {
   # Testing if there are plans present
   if (length(plans) == 0) {
     # Getting default plan for when no existing plans are present setting the expected end

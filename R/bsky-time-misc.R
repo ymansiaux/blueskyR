@@ -11,19 +11,19 @@
 #' @export
 #' @examples
 #' # Date only
-#' format_date_for_bluesky("2024-01-01")
-#' format_date_for_bluesky(as.Date("2024-01-01"))
+#' bsky_format_date("2024-01-01")
+#' bsky_format_date(as.Date("2024-01-01"))
 #'
 #' # Date and time
-#' format_date_for_bluesky("2024-01-01 12:30:45")
-#' format_date_for_bluesky(as.POSIXct("2024-01-01 12:30:45"))
+#' bsky_format_date("2024-01-01 12:30:45")
+#' bsky_format_date(as.POSIXct("2024-01-01 12:30:45"))
 #'
 #' # Unix timestamp
-#' format_date_for_bluesky(1704067200)
+#' bsky_format_date(1704067200)
 #'
 #' # Current time
-#' format_date_for_bluesky(Sys.time())
-format_date_for_bluesky <- function(
+#' bsky_format_date(Sys.time())
+bsky_format_date <- function(
   date_input,
   timezone = "UTC",
   include_time = TRUE

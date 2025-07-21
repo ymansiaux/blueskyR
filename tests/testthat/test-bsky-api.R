@@ -1,4 +1,4 @@
-test_that("search_posts works with valid parameters", {
+test_that("bsky_search works with valid parameters", {
   # Mock successful search response
   mock_posts <- list(
     list(
@@ -24,7 +24,7 @@ test_that("search_posts works with valid parameters", {
 
   with_mocked_bindings(
     code = {
-      result <- search_posts(
+      result <- bsky_search(
         "covid19",
         "mock_token",
         number_of_posts_per_request = 100
@@ -50,7 +50,7 @@ test_that("search_posts works with valid parameters", {
   )
 })
 
-test_that("search_posts works when retrieving many posts", {
+test_that("bsky_search works when retrieving many posts", {
   # Mock successful search response
   mock_posts <- create_mock_posts(n = 200)
 
@@ -61,7 +61,7 @@ test_that("search_posts works when retrieving many posts", {
 
   with_mocked_bindings(
     code = {
-      result <- search_posts("covid19", "mock_token")
+      result <- bsky_search("covid19", "mock_token")
 
       expect_type(result, "list")
       posts <- result$results$posts
@@ -78,11 +78,11 @@ test_that("search_posts works when retrieving many posts", {
   )
 })
 
-test_that("search_posts fails with no internet connection", {
+test_that("bsky_search fails with no internet connection", {
   with_mocked_bindings(
     code = {
       expect_error(
-        search_posts("covid19", "mock_token"),
+        bsky_search("covid19", "mock_token"),
         "No internet connection"
       )
     },
@@ -90,7 +90,7 @@ test_that("search_posts fails with no internet connection", {
   )
 })
 
-test_that("search_posts handles empty results", {
+test_that("bsky_search handles empty results", {
   mock_response <- list(
     posts = list(),
     cursor = NULL
@@ -98,7 +98,7 @@ test_that("search_posts handles empty results", {
 
   with_mocked_bindings(
     code = {
-      result <- search_posts("nonexistentkeyword", "mock_token")
+      result <- bsky_search("nonexistentkeyword", "mock_token")
 
       expect_type(result, "list")
       expect_length(result$results$posts, 0)
@@ -114,11 +114,11 @@ test_that("search_posts handles empty results", {
   )
 })
 
-test_that("search_posts handles API errors", {
+test_that("bsky_search handles API errors", {
   with_mocked_bindings(
     code = {
       expect_error(
-        search_posts("covid19", "invalid_token"),
+        bsky_search("covid19", "invalid_token"),
         "HTTP 401 Unauthorized"
       )
     },

@@ -1,4 +1,4 @@
-set_date_boundaries <- function(plan) {
+bsky_set_date_boundaries <- function(plan) {
   # We set the upper bound of the research: if missing we set it to the current time
   max_text <- plan$research_max_date
   if (is.null(plan$research_max_date)) {
@@ -27,7 +27,7 @@ set_date_boundaries <- function(plan) {
 }
 
 
-update_plan <- function(plan, content, tz = "UTC") {
+bsky_update_plan <- function(plan, content, tz = "UTC") {
   # If a request retrieved no messages, we stop the research
   # if (is.null(content$newest_message_in_a_query)) {
   #     plan$research_max_date <- NA

@@ -26,15 +26,15 @@ library(purrr)
 handle <- Sys.getenv("bluesky_id")
 password <- Sys.getenv("bluesky_pwd")
 
-infos <- create_session(handle, password)
+infos <- bsky_create_session(handle, password)
 did <- infos$did
 token <- infos$access_jwt
 ```
 
 ```{r}
-posts <- search_posts_paginated(keyword = "covid19", access_jwt = token, number_of_posts_per_request = 100, until = "2025-07-14", max_posts = 10)
+posts <- bsky_search_paginated(keyword = "covid19", access_jwt = token, number_of_posts_per_request = 100, until = "2025-07-14", max_posts = 10)
 
-posts <- search_posts_paginated(keyword = "measles OR sarampion OR rougeole", access_jwt = token, number_of_posts_per_request = 100, get_posts_until = "2025-07-14", max_posts = 100)
+posts <- bsky_search_paginated(keyword = "measles OR sarampion OR rougeole", access_jwt = token, number_of_posts_per_request = 100, get_posts_until = "2025-07-14", max_posts = 100)
 
 posts <- posts$posts
 length(posts)
@@ -42,9 +42,9 @@ length(posts)
 posts <- posts[1:10]
 jsonlite::write_json(posts, "posts.json")
 names(posts)
-elements <- extract_many_posts_elements(posts)
+elements <- bsky_extract_many_posts_elements(posts)
 
-posts <- search_posts(keyword = "covid19", access_jwt = token, number_of_posts_per_request = 100, until = "2025-07-01")
+posts <- bsky_search(keyword = "covid19", access_jwt = token, number_of_posts_per_request = 100, until = "2025-07-01")
 
 elements[[1]]
 ```
@@ -56,9 +56,9 @@ library(bskyr)
 set_bluesky_user(Sys.getenv("bluesky_id"))
 set_bluesky_pass(Sys.getenv("bluesky_app_pwd"))
 
-posts_bskyr <- bs_search_posts("covid19", limit = 200)
+posts_bskyr <- bs_bsky_search("covid19", limit = 200)
 
-elements_bskyr <- extract_many_posts_elements_bskyr(posts_bskyr)
+elements_bskyr <- bsky_extract_many_posts_elements_bskyr(posts_bskyr)
 
 elements_bskyr[[1]]
 
